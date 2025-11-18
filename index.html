@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NFL Betting & Props</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <h1 class="logo">🏈 NFL Betting Hub</h1>
+            <ul class="nav-links">
+                <li><a href="index.html" class="active">Games</a></li>
+                <li><a href="parlay-generator.html">Parlay Generator</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- News/RSS Feed Section -->
+        <aside class="news-sidebar">
+            <h2>Latest Updates</h2>
+            <div class="news-feed" id="newsFeed">
+                <div class="news-item">
+                    <span class="news-tag injury">Injury</span>
+                    <p><strong>Patrick Mahomes</strong> - Questionable (ankle)</p>
+                    <span class="news-time">2 hours ago</span>
+                </div>
+                <div class="news-item">
+                    <span class="news-tag weather">Weather</span>
+                    <p><strong>GB vs CHI</strong> - Heavy winds expected (20+ mph)</p>
+                    <span class="news-time">4 hours ago</span>
+                </div>
+                <div class="news-item">
+                    <span class="news-tag injury">Injury</span>
+                    <p><strong>Justin Jefferson</strong> - Out (hamstring)</p>
+                    <span class="news-time">5 hours ago</span>
+                </div>
+                <div class="news-item">
+                    <span class="news-tag lineup">Lineup</span>
+                    <p><strong>Miami</strong> - Tua confirmed starter</p>
+                    <span class="news-time">6 hours ago</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="header-section">
+                <h2>Upcoming Games</h2>
+                <div class="week-selector">
+                    <button class="week-nav" id="prevWeek">‹</button>
+                    <span id="weekDisplay">Week 11 - Nov 18-24, 2025</span>
+                    <button class="week-nav" id="nextWeek">›</button>
+                </div>
+            </div>
+
+            <!-- Day tabs -->
+            <div class="day-tabs" id="dayTabs">
+                <button class="day-tab active" data-day="0">Today</button>
+                <button class="day-tab" data-day="1">Tomorrow</button>
+                <button class="day-tab" data-day="2">Wed</button>
+                <button class="day-tab" data-day="3">Thu</button>
+                <button class="day-tab" data-day="4">Fri</button>
+                <button class="day-tab" data-day="5">Sat</button>
+                <button class="day-tab" data-day="6">Sun</button>
+            </div>
+
+            <!-- Games Grid -->
+            <div class="games-grid" id="gamesGrid">
+                <!-- Games will be populated by JavaScript -->
+            </div>
+        </main>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

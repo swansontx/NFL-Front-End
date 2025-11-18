@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Details - NFL Betting</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <h1 class="logo">🏈 NFL Betting Hub</h1>
+            <ul class="nav-links">
+                <li><a href="index.html">Games</a></li>
+                <li><a href="parlay-generator.html">Parlay Generator</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container detail-container">
+        <a href="index.html" class="back-link">← Back to Games</a>
+
+        <div class="game-header" id="gameHeader">
+            <!-- Populated by JavaScript -->
+        </div>
+
+        <div class="props-container">
+            <!-- Betting Markets Overview -->
+            <section class="props-section">
+                <div class="section-header">
+                    <h2>Game Lines</h2>
+                    <div class="sort-controls">
+                        <label>Sort by:</label>
+                        <select id="marketSort">
+                            <option value="default">Default</option>
+                            <option value="value">Best Value</option>
+                            <option value="odds">Odds</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="props-grid" id="gameLines">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </section>
+
+            <!-- Player Props -->
+            <section class="props-section">
+                <div class="section-header">
+                    <h2>Player Props</h2>
+                    <div class="filter-controls">
+                        <button class="filter-btn active" data-filter="all">All</button>
+                        <button class="filter-btn" data-filter="passing">Passing</button>
+                        <button class="filter-btn" data-filter="rushing">Rushing</button>
+                        <button class="filter-btn" data-filter="receiving">Receiving</button>
+                        <button class="filter-btn" data-filter="defensive">Defensive</button>
+                    </div>
+                    <div class="sort-controls">
+                        <label>Sort by:</label>
+                        <select id="propSort">
+                            <option value="rating">Best Value</option>
+                            <option value="player">Player</option>
+                            <option value="odds">Odds</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="props-table-container">
+                    <table class="props-table" id="playerPropsTable">
+                        <thead>
+                            <tr>
+                                <th>Player</th>
+                                <th>Prop</th>
+                                <th>Line</th>
+                                <th>Over</th>
+                                <th>Under</th>
+                                <th>Rating</th>
+                            </tr>
+                        </thead>
+                        <tbody id="playerPropsBody">
+                            <!-- Populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Team Props -->
+            <section class="props-section">
+                <div class="section-header">
+                    <h2>Team Props</h2>
+                </div>
+                <div class="props-grid" id="teamProps">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/game-detail.js"></script>
+</body>
+</html>
