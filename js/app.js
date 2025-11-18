@@ -5,6 +5,9 @@ let currentDay = 0;
 // Initialize the app when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     initializeDayTabs();
+    loadBestBets();
+    loadBestProps();
+    loadProjections();
     loadGames(currentDay);
     setupEventListeners();
 });
@@ -145,4 +148,204 @@ function formatTime(time) {
     const ampm = hour >= 12 ? 'PM' : 'AM';
     const displayHour = hour % 12 || 12;
     return `${displayHour}:${minutes} ${ampm} ET`;
+}
+
+// Load Best Bets section
+function loadBestBets() {
+    const container = document.getElementById('bestBetsGrid');
+    if (!container) return;
+
+    const bestBets = [
+        {
+            game: 'Kansas City @ Buffalo',
+            pick: 'Over 54.5',
+            odds: '-110',
+            confidence: 'High',
+            reason: '8-2 record on overs in matchups this season'
+        },
+        {
+            game: 'Philadelphia @ Dallas',
+            pick: 'Eagles -7.5',
+            odds: '-110',
+            confidence: 'High',
+            reason: 'Eagles 8-2 ATS in last 10 games'
+        },
+        {
+            game: 'Green Bay vs Chicago',
+            pick: 'Packers ML',
+            odds: '-420',
+            confidence: 'Medium',
+            reason: 'Packers dominant at home this season'
+        },
+        {
+            game: 'Baltimore vs Cincinnati',
+            pick: 'Under 52.5',
+            odds: '-110',
+            confidence: 'Medium',
+            reason: 'Strong defensive matchup, weather concerns'
+        }
+    ];
+
+    container.innerHTML = bestBets.map(bet => `
+        <div class="best-bet-card">
+            <div class="best-bet-header">
+                <div class="best-bet-matchup">
+                    <div class="best-bet-game">${bet.game}</div>
+                    <div class="best-bet-pick">${bet.pick}</div>
+                </div>
+                <div class="best-bet-confidence">${bet.confidence}</div>
+            </div>
+            <div class="best-bet-details">
+                <div class="best-bet-odds">${bet.odds}</div>
+                <div class="best-bet-reason">${bet.reason}</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Load Best Props section
+function loadBestProps() {
+    const container = document.getElementById('bestPropsList');
+    if (!container) return;
+
+    const bestProps = [
+        {
+            rank: 1,
+            player: 'Patrick Mahomes',
+            team: 'KC',
+            prop: 'Over 287.5 Passing Yards',
+            line: '287.5',
+            odds: '-115',
+            rating: 'excellent'
+        },
+        {
+            rank: 2,
+            player: 'Josh Allen',
+            team: 'BUF',
+            prop: 'Over 42.5 Rushing Yards',
+            line: '42.5',
+            odds: '-120',
+            rating: 'excellent'
+        },
+        {
+            rank: 3,
+            player: 'Travis Kelce',
+            team: 'KC',
+            prop: 'Over 5.5 Receptions',
+            line: '5.5',
+            odds: '-130',
+            rating: 'good'
+        },
+        {
+            rank: 4,
+            player: 'Stefon Diggs',
+            team: 'BUF',
+            prop: 'Over 73.5 Receiving Yards',
+            line: '73.5',
+            odds: '+100',
+            rating: 'good'
+        },
+        {
+            rank: 5,
+            player: 'Jalen Hurts',
+            team: 'PHI',
+            prop: 'Over 1.5 Passing TDs',
+            line: '1.5',
+            odds: '-145',
+            rating: 'good'
+        }
+    ];
+
+    container.innerHTML = bestProps.map(prop => `
+        <div class="best-prop-item">
+            <div class="best-prop-rank">${prop.rank}</div>
+            <div class="best-prop-player">
+                <div class="best-prop-name">${prop.player}</div>
+                <div class="best-prop-desc">${prop.prop}</div>
+            </div>
+            <div class="best-prop-line">
+                <div class="best-prop-type">Line</div>
+                <div class="best-prop-value">${prop.line}</div>
+            </div>
+            <div class="rating-badge ${getRatingClass(prop.rating)}">${prop.rating}</div>
+        </div>
+    `).join('');
+}
+
+// Load Player Projections section
+function loadProjections() {
+    const container = document.getElementById('projectionsBody');
+    if (!container) return;
+
+    const projections = [
+        {
+            player: 'Patrick Mahomes',
+            team: 'KC',
+            passYds: 298,
+            passTD: 2.5,
+            rushYds: 12,
+            recYds: '-',
+            fantasyPts: 24.3
+        },
+        {
+            player: 'Josh Allen',
+            team: 'BUF',
+            passYds: 276,
+            passTD: 2.3,
+            rushYds: 48,
+            recYds: '-',
+            fantasyPts: 25.1
+        },
+        {
+            player: 'Travis Kelce',
+            team: 'KC',
+            passYds: '-',
+            passTD: '-',
+            rushYds: 2,
+            recYds: 72,
+            fantasyPts: 13.2
+        },
+        {
+            player: 'Stefon Diggs',
+            team: 'BUF',
+            passYds: '-',
+            passTD: '-',
+            rushYds: 1,
+            recYds: 84,
+            fantasyPts: 14.9
+        },
+        {
+            player: 'Jalen Hurts',
+            team: 'PHI',
+            passYds: 245,
+            passTD: 2.1,
+            rushYds: 52,
+            recYds: '-',
+            fantasyPts: 23.7
+        },
+        {
+            player: 'A.J. Brown',
+            team: 'PHI',
+            passYds: '-',
+            passTD: '-',
+            rushYds: 0,
+            recYds: 91,
+            fantasyPts: 15.6
+        }
+    ];
+
+    container.innerHTML = projections.map(proj => `
+        <tr>
+            <td>
+                <div class="projection-player">${proj.player}</div>
+                <div class="projection-team">${proj.team}</div>
+            </td>
+            <td class="projection-team">${proj.team}</td>
+            <td class="projection-value ${proj.passYds > 250 ? 'projection-high' : ''}">${proj.passYds}</td>
+            <td class="projection-value">${proj.passTD}</td>
+            <td class="projection-value ${proj.rushYds > 40 ? 'projection-high' : ''}">${proj.rushYds}</td>
+            <td class="projection-value ${proj.recYds > 80 ? 'projection-high' : ''}">${proj.recYds}</td>
+            <td class="projection-value ${proj.fantasyPts > 20 ? 'projection-high' : ''}">${proj.fantasyPts}</td>
+        </tr>
+    `).join('');
 }

@@ -223,9 +223,305 @@ body {
     font-size: 0.75rem;
 }
 
+/* ===== Sidebar Sections ===== */
+.sidebar-section {
+    margin-bottom: var(--space-2xl);
+}
+
+.sidebar-section:last-child {
+    margin-bottom: 0;
+}
+
+/* ===== Trends Section ===== */
+.trends-section {
+    padding-top: var(--space-2xl);
+    border-top: 1px solid var(--border-light);
+}
+
+.trends-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.trend-item {
+    padding: var(--space-md);
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    border-left: 3px solid var(--accent-green);
+}
+
+.trend-stat {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--accent-green);
+    margin-bottom: var(--space-xs);
+}
+
+.trend-desc {
+    font-size: 0.813rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
 /* ===== Main Content ===== */
 .main-content {
     min-height: 80vh;
+}
+
+/* ===== Feature Sections ===== */
+.feature-section {
+    margin-bottom: var(--space-2xl);
+    padding-bottom: var(--space-2xl);
+    border-bottom: 1px solid var(--border-light);
+}
+
+.feature-section:last-child {
+    border-bottom: none;
+}
+
+.section-header-main {
+    margin-bottom: var(--space-xl);
+}
+
+.section-header-main h2 {
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--space-xs);
+}
+
+.section-subtitle {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+/* ===== Best Bets Grid ===== */
+.best-bets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: var(--space-lg);
+}
+
+.best-bet-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    box-shadow: var(--shadow-card);
+    transition: all var(--transition-base);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+
+.best-bet-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--accent-green);
+}
+
+.best-bet-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--accent-blue);
+}
+
+.best-bet-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--space-md);
+}
+
+.best-bet-matchup {
+    flex: 1;
+}
+
+.best-bet-game {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-xs);
+}
+
+.best-bet-pick {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.best-bet-confidence {
+    background: var(--accent-green-dim);
+    color: var(--accent-green);
+    padding: 0.25rem var(--space-sm);
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.best-bet-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--border-light);
+}
+
+.best-bet-odds {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.best-bet-reason {
+    font-size: 0.813rem;
+    color: var(--text-secondary);
+}
+
+/* ===== Best Props List ===== */
+.best-props-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.best-prop-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--space-lg);
+    box-shadow: var(--shadow-card);
+    transition: all var(--transition-base);
+    cursor: pointer;
+    display: grid;
+    grid-template-columns: 60px 1fr auto auto;
+    gap: var(--space-lg);
+    align-items: center;
+}
+
+.best-prop-item:hover {
+    border-color: var(--accent-blue);
+    box-shadow: var(--shadow-md);
+}
+
+.best-prop-rank {
+    width: 48px;
+    height: 48px;
+    background: var(--accent-blue);
+    color: var(--text-white);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.best-prop-player {
+    flex: 1;
+}
+
+.best-prop-name {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--space-xs);
+}
+
+.best-prop-desc {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+.best-prop-line {
+    text-align: right;
+}
+
+.best-prop-type {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    margin-bottom: var(--space-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    font-weight: 600;
+}
+
+.best-prop-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.best-prop-rating {
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+/* ===== Player Projections Table ===== */
+.projections-table-container {
+    overflow-x: auto;
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+}
+
+.projections-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.projections-table th {
+    background: var(--bg-tertiary);
+    padding: var(--space-md) var(--space-lg);
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border-bottom: 2px solid var(--border-light);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.projections-table td {
+    padding: var(--space-md) var(--space-lg);
+    border-bottom: 1px solid var(--border-light);
+    font-size: 0.875rem;
+}
+
+.projections-table tbody tr {
+    transition: background var(--transition-fast);
+}
+
+.projections-table tbody tr:hover {
+    background: var(--bg-tertiary);
+}
+
+.projection-player {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.projection-team {
+    color: var(--text-tertiary);
+    font-size: 0.75rem;
+}
+
+.projection-value {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.projection-high {
+    color: var(--accent-green);
+    font-weight: 700;
 }
 
 .header-section {
