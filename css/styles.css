@@ -282,45 +282,51 @@ body {
 /* ===== Day Tabs ===== */
 .day-tabs {
     display: flex;
-    gap: var(--space-sm);
+    gap: 0;
     margin-bottom: var(--space-xl);
-    background: var(--bg-card);
-    padding: var(--space-xs);
-    border-radius: var(--radius-md);
-    border: 1px solid var(--border-light);
-    box-shadow: var(--shadow-sm);
+    background: transparent;
+    border-bottom: 2px solid var(--border-light);
+    overflow-x: auto;
+}
+
+.day-tabs::-webkit-scrollbar {
+    height: 0;
 }
 
 .day-tab {
-    flex: 1;
-    padding: var(--space-md) var(--space-sm);
+    flex: 0 0 auto;
+    padding: var(--space-md) var(--space-lg);
     background: transparent;
     border: none;
+    border-bottom: 3px solid transparent;
     color: var(--text-secondary);
-    font-weight: 500;
+    font-weight: 600;
     font-size: 0.875rem;
-    border-radius: var(--radius-sm);
     cursor: pointer;
     transition: all var(--transition-base);
     text-align: center;
+    white-space: nowrap;
+    position: relative;
+    margin-bottom: -2px;
 }
 
 .day-tab:hover {
-    background: var(--bg-tertiary);
     color: var(--text-primary);
+    background: var(--bg-hover);
 }
 
 .day-tab.active {
-    background: var(--accent-blue);
-    color: var(--text-white);
-    box-shadow: var(--shadow-sm);
+    color: var(--accent-blue);
+    border-bottom-color: var(--accent-blue);
+    background: transparent;
 }
 
 .day-tab small {
     display: block;
-    font-size: 0.7rem;
-    opacity: 0.9;
+    font-size: 0.688rem;
+    opacity: 0.8;
     margin-top: 2px;
+    font-weight: 500;
 }
 
 /* ===== Game Cards ===== */
@@ -524,19 +530,22 @@ body {
 
 .filter-controls {
     display: flex;
-    gap: var(--space-sm);
+    gap: 0;
+    border-bottom: 2px solid var(--border-light);
 }
 
 .filter-btn {
-    padding: var(--space-sm) var(--space-md);
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-light);
+    padding: var(--space-sm) var(--space-lg);
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
     color: var(--text-secondary);
-    border-radius: var(--radius-md);
     cursor: pointer;
     transition: all var(--transition-base);
     font-size: 0.813rem;
-    font-weight: 500;
+    font-weight: 600;
+    white-space: nowrap;
+    margin-bottom: -2px;
 }
 
 .filter-btn:hover {
@@ -545,9 +554,9 @@ body {
 }
 
 .filter-btn.active {
-    background: var(--accent-blue);
-    color: var(--text-white);
-    border-color: var(--accent-blue);
+    background: transparent;
+    color: var(--accent-blue);
+    border-bottom-color: var(--accent-blue);
 }
 
 .sort-controls {
