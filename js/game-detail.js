@@ -65,6 +65,12 @@ async function loadGameDetails() {
     // Load game header
     loadGameHeader(game);
 
+    // Load new sections
+    loadRelatedContent(game);
+    loadInjuryRoster(game);
+    loadMatchupInsights(game);
+    loadTopPropsAndParlays(game);
+
     // Load betting markets
     loadGameLines(game);
 
@@ -382,4 +388,337 @@ function formatGameDate(dateStr) {
     const date = new Date(dateStr);
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     return date.toLocaleDateString('en-US', options);
+}
+
+// Load Related Content (Articles & Videos)
+function loadRelatedContent(game) {
+    const container = document.getElementById('relatedContent');
+    if (!container) return;
+
+    // Mock data - would come from API
+    const content = [
+        {
+            type: 'article',
+            title: `${game.awayTeam} vs ${game.homeTeam}: Expert Picks & Predictions`,
+            source: 'ESPN',
+            url: '#',
+            thumbnail: '📄',
+            time: '2 hours ago'
+        },
+        {
+            type: 'video',
+            title: `Film Breakdown: ${game.homeTeam} Defense vs ${game.awayTeam} Offense`,
+            source: 'NFL Network',
+            url: '#',
+            thumbnail: '🎥',
+            time: '5 hours ago'
+        },
+        {
+            type: 'article',
+            title: `Key Matchups to Watch in ${game.awayTeam} @ ${game.homeTeam}`,
+            source: 'The Athletic',
+            url: '#',
+            thumbnail: '📄',
+            time: '1 day ago'
+        },
+        {
+            type: 'video',
+            title: `${game.homeTeam} Gameplan Preview with Coach Analysis`,
+            source: 'NFL Films',
+            url: '#',
+            thumbnail: '🎥',
+            time: '1 day ago'
+        }
+    ];
+
+    container.innerHTML = content.map(item => `
+        <a href="${item.url}" class="content-card" target="_blank">
+            <div class="content-thumbnail">${item.thumbnail}</div>
+            <div class="content-info">
+                <h4 class="content-title">${item.title}</h4>
+                <div class="content-meta">
+                    <span class="content-source">${item.source}</span>
+                    <span class="content-time">${item.time}</span>
+                </div>
+            </div>
+        </a>
+    `).join('');
+}
+
+// Load Injury Report & Roster Insights
+function loadInjuryRoster(game) {
+    const container = document.getElementById('injuryRoster');
+    if (!container) return;
+
+    // Mock data - would come from API
+    const injuries = [
+        {
+            team: game.awayTeam,
+            player: 'Star WR',
+            position: 'WR',
+            status: 'Questionable',
+            injury: 'Hamstring',
+            impact: 'High',
+            details: 'Game-time decision. Limited in practice Wed-Fri.'
+        },
+        {
+            team: game.homeTeam,
+            player: 'Starting CB',
+            position: 'CB',
+            status: 'Out',
+            injury: 'Ankle',
+            impact: 'High',
+            details: 'Will miss 2-3 weeks. Backup has struggled in coverage.'
+        },
+        {
+            team: game.awayTeam,
+            player: 'RB2',
+            position: 'RB',
+            status: 'Probable',
+            injury: 'Knee',
+            impact: 'Low',
+            details: 'Full participant in practice. Expected to play.'
+        }
+    ];
+
+    const awayInjuries = injuries.filter(i => i.team === game.awayTeam);
+    const homeInjuries = injuries.filter(i => i.team === game.homeTeam);
+
+    container.innerHTML = `
+        <div class="injury-column">
+            <h4>${game.awayTeam} Injuries</h4>
+            ${awayInjuries.map(injury => `
+                <div class="injury-card impact-${injury.impact.toLowerCase()}">
+                    <div class="injury-header">
+                        <span class="injury-player">${injury.player}</span>
+                        <span class="injury-status status-${injury.status.toLowerCase().replace(' ', '-')}">${injury.status}</span>
+                    </div>
+                    <div class="injury-details">
+                        <span class="injury-position">${injury.position}</span>
+                        <span class="injury-type">${injury.injury}</span>
+                        <span class="injury-impact">Impact: ${injury.impact}</span>
+                    </div>
+                    <p class="injury-description">${injury.details}</p>
+                </div>
+            `).join('')}
+        </div>
+        <div class="injury-column">
+            <h4>${game.homeTeam} Injuries</h4>
+            ${homeInjuries.map(injury => `
+                <div class="injury-card impact-${injury.impact.toLowerCase()}">
+                    <div class="injury-header">
+                        <span class="injury-player">${injury.player}</span>
+                        <span class="injury-status status-${injury.status.toLowerCase().replace(' ', '-')}">${injury.status}</span>
+                    </div>
+                    <div class="injury-details">
+                        <span class="injury-position">${injury.position}</span>
+                        <span class="injury-type">${injury.injury}</span>
+                        <span class="injury-impact">Impact: ${injury.impact}</span>
+                    </div>
+                    <p class="injury-description">${injury.details}</p>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+// Load Game Dynamics & Matchup Insights
+function loadMatchupInsights(game) {
+    const container = document.getElementById('matchupInsights');
+    if (!container) return;
+
+    // Mock data - would come from ML model/API
+    const insights = [
+        {
+            category: 'Offensive Matchup',
+            icon: '⚔️',
+            rating: 'Advantage: ' + game.awayTeam,
+            description: `${game.awayTeam} ranks 3rd in yards per play (6.2) vs ${game.homeTeam} defense ranked 18th (5.8 allowed)`,
+            stats: ['Pass: Elite vs Average', 'Run: Good vs Poor']
+        },
+        {
+            category: 'Defensive Matchup',
+            icon: '🛡️',
+            rating: 'Advantage: ' + game.homeTeam,
+            description: `${game.homeTeam} defense #2 in sacks (42) and pressure rate (28.5%). ${game.awayTeam} O-line struggles.`,
+            stats: ['Pass Rush: Elite', 'Coverage: Good']
+        },
+        {
+            category: 'Pace & Efficiency',
+            icon: '⚡',
+            rating: 'High Pace Game',
+            description: `Both teams in top 10 for plays per game. Expect 140+ total plays and shootout potential.`,
+            stats: [`${game.awayTeam}: 67 plays/game`, `${game.homeTeam}: 65 plays/game`]
+        },
+        {
+            category: 'Red Zone Trends',
+            icon: '🎯',
+            rating: 'TD Heavy',
+            description: `${game.homeTeam} converts TDs 68% of the time in red zone (2nd in NFL). Points will come in bunches.`,
+            stats: ['RZ TD%: 68% vs 52%', 'RZ FG%: 32% vs 48%']
+        },
+        {
+            category: 'Weather Impact',
+            icon: '🌤️',
+            rating: 'Minimal',
+            description: 'Clear skies, 65°F, 5mph winds. Ideal conditions for passing offense.',
+            stats: ['Temperature: 65°F', 'Wind: 5mph']
+        },
+        {
+            category: 'Historical H2H',
+            icon: '📊',
+            rating: 'Close Games',
+            description: `Last 5 matchups avg margin: 3.2 points. ${game.homeTeam} 3-2 ATS at home vs ${game.awayTeam}.`,
+            stats: ['Avg Total: 52.4', 'Home Team: 3-2 ATS']
+        }
+    ];
+
+    container.innerHTML = insights.map(insight => `
+        <div class="insight-card">
+            <div class="insight-header">
+                <span class="insight-icon">${insight.icon}</span>
+                <h4>${insight.category}</h4>
+            </div>
+            <div class="insight-rating">${insight.rating}</div>
+            <p class="insight-description">${insight.description}</p>
+            <div class="insight-stats">
+                ${insight.stats.map(stat => `<span class="insight-stat">${stat}</span>`).join('')}
+            </div>
+        </div>
+    `).join('');
+}
+
+// Load Top Props & Suggested Parlays
+async function loadTopPropsAndParlays(game) {
+    const topPropsContainer = document.getElementById('topProps');
+    const parlaysContainer = document.getElementById('suggestedParlays');
+
+    if (!topPropsContainer || !parlaysContainer) return;
+
+    // Try to load from backend
+    try {
+        // Get recommendations for top props
+        const recs = await apiService.getRecommendations(currentGameId, {
+            limit: 5,
+            min_confidence: 0.65
+        });
+
+        if (recs.recommendations && recs.recommendations.length > 0) {
+            const topProps = recs.recommendations.slice(0, 5);
+            topPropsContainer.innerHTML = topProps.map((prop, index) => `
+                <div class="top-prop-item">
+                    <div class="top-prop-rank">#${index + 1}</div>
+                    <div class="top-prop-details">
+                        <div class="top-prop-player">${prop.player_name}</div>
+                        <div class="top-prop-market">${formatMarketName(prop.market)} ${prop.line}</div>
+                        <div class="top-prop-odds">${prop.market_odds ? formatOdds(prop.market_odds) : '-110'}</div>
+                    </div>
+                    <div class="rating-badge ${getRatingClass(mapConfidenceToRating(prop.confidence))}">
+                        ${mapConfidenceToRating(prop.confidence).toUpperCase()}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Get parlay suggestions
+        const parlays = await apiService.getParlays(currentGameId, {
+            num_legs: 3,
+            risk_category: 'moderate'
+        });
+
+        if (parlays.parlays && parlays.parlays.length > 0) {
+            parlaysContainer.innerHTML = parlays.parlays.slice(0, 3).map((parlay, index) => `
+                <div class="parlay-card">
+                    <div class="parlay-header">
+                        <span class="parlay-name">${parlay.name || `Parlay ${index + 1}`}</span>
+                        <span class="parlay-odds">${parlay.total_odds ? formatOdds(parlay.total_odds) : '+280'}</span>
+                    </div>
+                    <div class="parlay-legs">
+                        ${(parlay.legs || []).map(leg => `
+                            <div class="parlay-leg">
+                                ${leg.player_name ? `${leg.player_name} - ` : ''}
+                                ${leg.description || formatMarketName(leg.market) + ' ' + leg.line}
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="parlay-confidence">
+                        Confidence: ${parlay.confidence ? (parlay.confidence * 100).toFixed(0) : '65'}%
+                    </div>
+                </div>
+            `).join('');
+        }
+
+    } catch (error) {
+        console.log('Using mock data for top props and parlays');
+
+        // Fallback to mock data
+        topPropsContainer.innerHTML = `
+            <div class="top-prop-item">
+                <div class="top-prop-rank">#1</div>
+                <div class="top-prop-details">
+                    <div class="top-prop-player">Star QB</div>
+                    <div class="top-prop-market">Over 285.5 Passing Yards</div>
+                    <div class="top-prop-odds">-115</div>
+                </div>
+                <div class="rating-badge excellent">EXCELLENT</div>
+            </div>
+            <div class="top-prop-item">
+                <div class="top-prop-rank">#2</div>
+                <div class="top-prop-details">
+                    <div class="top-prop-player">Elite WR</div>
+                    <div class="top-prop-market">Over 6.5 Receptions</div>
+                    <div class="top-prop-odds">-110</div>
+                </div>
+                <div class="rating-badge good">GOOD</div>
+            </div>
+            <div class="top-prop-item">
+                <div class="top-prop-rank">#3</div>
+                <div class="top-prop-details">
+                    <div class="top-prop-player">RB1</div>
+                    <div class="top-prop-market">Over 75.5 Rushing Yards</div>
+                    <div class="top-prop-odds">-120</div>
+                </div>
+                <div class="rating-badge good">GOOD</div>
+            </div>
+        `;
+
+        parlaysContainer.innerHTML = `
+            <div class="parlay-card">
+                <div class="parlay-header">
+                    <span class="parlay-name">Offensive Explosion</span>
+                    <span class="parlay-odds">+285</span>
+                </div>
+                <div class="parlay-legs">
+                    <div class="parlay-leg">QB Over 2.5 Pass TDs</div>
+                    <div class="parlay-leg">WR Over 85.5 Rec Yards</div>
+                    <div class="parlay-leg">Game Total Over 49.5</div>
+                </div>
+                <div class="parlay-confidence">Confidence: 68%</div>
+            </div>
+            <div class="parlay-card">
+                <div class="parlay-header">
+                    <span class="parlay-name">Star Power</span>
+                    <span class="parlay-odds">+310</span>
+                </div>
+                <div class="parlay-legs">
+                    <div class="parlay-leg">RB Anytime TD</div>
+                    <div class="parlay-leg">QB Over 285.5 Pass Yds</div>
+                    <div class="parlay-leg">WR Over 6.5 Receptions</div>
+                </div>
+                <div class="parlay-confidence">Confidence: 62%</div>
+            </div>
+        `;
+    }
+}
+
+function formatMarketName(market) {
+    const parts = market.replace('player_', '').split('_');
+    return parts.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
+}
+
+function mapConfidenceToRating(confidence) {
+    if (confidence >= 0.8) return 'excellent';
+    if (confidence >= 0.7) return 'good';
+    if (confidence >= 0.6) return 'moderate';
+    return 'poor';
 }

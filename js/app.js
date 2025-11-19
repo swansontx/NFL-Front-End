@@ -7,6 +7,7 @@ let currentSeason = 2024;
 // Initialize the app when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     initializeDayTabs();
+    loadNewsAndInjuries();
     loadBestBets();
     loadBestProps();
     loadProjections();
@@ -40,6 +41,18 @@ function initializeDayTabs() {
 }
 
 function setupEventListeners() {
+    // News & Injury tabs
+    const newsTabs = document.querySelectorAll('.news-tab');
+    newsTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            newsTabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+
+            const tabType = this.getAttribute('data-tab');
+            filterNewsAndInjuries(tabType);
+        });
+    });
+
     // Day tab navigation
     const dayTabs = document.querySelectorAll('.day-tab');
     dayTabs.forEach(tab => {
@@ -72,6 +85,51 @@ function navigateWeek(direction) {
 
     console.log(`Navigate to week: ${currentWeek}`);
     loadGames(0); // Reload current day's games for new week
+}
+
+// News & Injury data (would come from API in production)
+let allNewsItems = [];
+
+// Load News & Injuries
+function loadNewsAndInjuries() {
+    // Mock data - would come from backend API
+    allNewsItems = [
+        { type: 'breaking', team: 'KC', title: 'Patrick Mahomes', description: 'Cleared for Sunday after ankle scare', severity: 'low', time: '1 hour ago', icon: '✅' },
+        { type: 'injuries', team: 'MIN', title: 'Justin Jefferson', description: 'Ruled OUT - Hamstring injury will sideline star WR', severity: 'high', time: '2 hours ago', icon: '🚨' },
+        { type: 'breaking', team: 'BUF', title: 'Josh Allen', description: 'On pace for MVP with 35 TDs through 11 games', severity: 'low', time: '3 hours ago', icon: '⭐' },
+        { type: 'lineups', team: 'MIA', title: 'Tua Tagovailoa', description: 'Confirmed starter vs Jets - Full practice participation', severity: 'low', time: '4 hours ago', icon: '✅' },
+        { type: 'injuries', team: 'PHI', title: 'A.J. Brown', description: 'Questionable with knee - Game time decision', severity: 'medium', time: '5 hours ago', icon: '⚠️' },
+        { type: 'breaking', team: 'GB/CHI', title: 'Weather Alert', description: 'Heavy winds (20+ mph) expected - Passing game impact likely', severity: 'medium', time: '6 hours ago', icon: '🌬️' },
+        { type: 'injuries', team: 'SF', title: 'Christian McCaffrey', description: 'Limited in practice - Expected to play Sunday', severity: 'low', time: '7 hours ago', icon: '⚠️' },
+        { type: 'lineups', team: 'DAL', title: 'Dak Prescott', description: 'Returns to practice - Targeting Week 13 return', severity: 'medium', time: '8 hours ago', icon: '🔄' },
+        { type: 'breaking', team: 'BAL', title: 'Lamar Jackson', description: 'Leading Ravens to 9-2 record with elite rushing stats', severity: 'low', time: '9 hours ago', icon: '⭐' },
+        { type: 'injuries', team: 'DET', title: 'Aidan Hutchinson', description: 'Out for season - Major blow to Lions defense', severity: 'high', time: '1 day ago', icon: '🚨' }
+    ];
+
+    filterNewsAndInjuries('breaking');
+}
+
+function filterNewsAndInjuries(type) {
+    const container = document.getElementById('newsInjuryGrid');
+    if (!container) return;
+
+    let filtered = type === 'breaking'
+        ? allNewsItems.filter(item => item.type === 'breaking')
+        : allNewsItems.filter(item => item.type === type);
+
+    container.innerHTML = filtered.map(item => `
+        <div class="news-injury-card ${item.severity}">
+            <div class="news-injury-header">
+                <span class="news-injury-icon">${item.icon}</span>
+                <div class="news-injury-meta">
+                    <span class="news-injury-team">${item.team}</span>
+                    <span class="news-injury-time">${item.time}</span>
+                </div>
+            </div>
+            <h3 class="news-injury-title">${item.title}</h3>
+            <p class="news-injury-description">${item.description}</p>
+        </div>
+    `).join('');
 }
 
 // Load games from backend API
@@ -163,6 +221,9 @@ function createGameCard(game) {
     const homeSpread = game.spread.home > 0 ? `+${game.spread.home}` : game.spread.home;
     const awaySpread = game.spread.away > 0 ? `+${game.spread.away}` : game.spread.away;
 
+    // Generate game narrative (would come from API)
+    const narrative = getGameNarrative(game);
+
     return `
         <div class="game-card" data-game-id="${game.id}">
             <div class="game-time">${formatTime(game.time)}</div>
@@ -176,6 +237,10 @@ function createGameCard(game) {
                     <span class="team-name">${game.homeTeam}</span>
                     <span class="team-record">${game.homeRecord}</span>
                 </div>
+            </div>
+            <div class="game-narrative">
+                <span class="narrative-icon">📊</span>
+                <span class="narrative-text">${narrative}</span>
             </div>
             <div class="game-lines">
                 <div class="game-line">
@@ -193,6 +258,22 @@ function createGameCard(game) {
             </div>
         </div>
     `;
+}
+
+// Generate game narrative based on matchup
+function getGameNarrative(game) {
+    const narratives = [
+        `${game.homeTeam} 7-0 at home, strong defensive matchup`,
+        `High-scoring affair expected, O/U trending up`,
+        `${game.awayTeam} covers in 4 straight road games`,
+        `Divisional rivalry - Expect close game`,
+        `Weather could impact passing game significantly`,
+        `${game.homeTeam} on 5-game win streak`,
+        `Revenge game - ${game.awayTeam} seeking payback`,
+        `Both teams in playoff hunt, high stakes`
+    ];
+
+    return narratives[Math.floor(Math.random() * narratives.length)];
 }
 
 function formatTime(time) {

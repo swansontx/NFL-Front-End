@@ -1460,4 +1460,509 @@ body {
     .container {
         padding: var(--space-md);
     }
+
+    .news-injury-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .injury-roster-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .matchup-insights-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .top-props-parlays-container {
+        grid-template-columns: 1fr !important;
+    }
+
+    .related-content-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* ===== News & Injury Section ===== */
+.news-injury-section {
+    background: linear-gradient(135deg, var(--accent-blue) 0%, #2563eb 100%);
+    padding: var(--space-xl);
+    border-radius: var(--radius-lg);
+    color: var(--text-white);
+    box-shadow: var(--shadow-lg);
+    margin-bottom: var(--space-xl);
+}
+
+.news-injury-section .section-header-main h2,
+.news-injury-section .section-subtitle {
+    color: var(--text-white);
+}
+
+.news-injury-tabs {
+    display: flex;
+    gap: var(--space-sm);
+    margin: var(--space-lg) 0;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.news-tab {
+    padding: var(--space-sm) var(--space-lg);
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    transition: all var(--transition-base);
+    font-size: 0.938rem;
+    font-weight: 600;
+    margin-bottom: -2px;
+}
+
+.news-tab:hover {
+    color: var(--text-white);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.news-tab.active {
+    color: var(--text-white);
+    border-bottom-color: var(--text-white);
+}
+
+.news-injury-content {
+    margin-top: var(--space-lg);
+}
+
+.news-injury-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--space-md);
+}
+
+.news-injury-card {
+    background: rgba(255, 255, 255, 0.95);
+    padding: var(--space-lg);
+    border-radius: var(--radius-md);
+    border-left: 4px solid var(--accent-blue);
+    transition: all var(--transition-base);
+    box-shadow: var(--shadow-sm);
+}
+
+.news-injury-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.news-injury-card.high {
+    border-left-color: #dc2626;
+}
+
+.news-injury-card.medium {
+    border-left-color: #d97706;
+}
+
+.news-injury-card.low {
+    border-left-color: var(--accent-green);
+}
+
+.news-injury-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-sm);
+}
+
+.news-injury-icon {
+    font-size: 1.5rem;
+}
+
+.news-injury-meta {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.news-injury-team {
+    font-weight: 700;
+    font-size: 0.813rem;
+    color: var(--accent-blue);
+}
+
+.news-injury-time {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+}
+
+.news-injury-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: var(--space-xs);
+    color: var(--text-primary);
+}
+
+.news-injury-description {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+/* ===== Game Narrative in Schedule ===== */
+.game-narrative {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    background: var(--accent-blue-dim);
+    border-radius: var(--radius-sm);
+    margin: var(--space-sm) 0;
+}
+
+.narrative-icon {
+    font-size: 1rem;
+}
+
+.narrative-text {
+    font-size: 0.813rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+/* ===== Game Detail Sections ===== */
+.detail-section {
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    border: 1px solid var(--border-light);
+    box-shadow: var(--shadow-card);
+    margin-bottom: var(--space-xl);
+}
+
+.detail-section .section-header h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--space-lg);
+}
+
+/* ===== Related Content Grid ===== */
+.related-content-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--space-md);
+}
+
+.content-card {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-md);
+    padding: var(--space-lg);
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-light);
+    text-decoration: none;
+    transition: all var(--transition-base);
+}
+
+.content-card:hover {
+    border-color: var(--accent-blue);
+    box-shadow: var(--shadow-sm);
+    transform: translateY(-2px);
+}
+
+.content-thumbnail {
+    font-size: 2.5rem;
+    flex-shrink: 0;
+}
+
+.content-info {
+    flex: 1;
+}
+
+.content-title {
+    font-size: 0.938rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--space-xs);
+    line-height: 1.4;
+}
+
+.content-meta {
+    display: flex;
+    gap: var(--space-md);
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+}
+
+.content-source {
+    font-weight: 600;
+}
+
+/* ===== Injury & Roster Grid ===== */
+.injury-roster-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-xl);
+}
+
+.injury-column h4 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--space-md);
+    padding-bottom: var(--space-sm);
+    border-bottom: 2px solid var(--border-light);
+}
+
+.injury-card {
+    background: var(--bg-tertiary);
+    padding: var(--space-lg);
+    border-radius: var(--radius-md);
+    border-left: 4px solid var(--border-medium);
+    margin-bottom: var(--space-md);
+}
+
+.injury-card.impact-high {
+    border-left-color: #dc2626;
+    background: #fee2e2;
+}
+
+.injury-card.impact-medium {
+    border-left-color: #d97706;
+    background: #fef3c7;
+}
+
+.injury-card.impact-low {
+    border-left-color: var(--accent-green);
+    background: #dcfce7;
+}
+
+.injury-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-sm);
+}
+
+.injury-player {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--text-primary);
+}
+
+.injury-status {
+    padding: 0.25rem var(--space-sm);
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-out {
+    background: #dc2626;
+    color: white;
+}
+
+.status-questionable {
+    background: #d97706;
+    color: white;
+}
+
+.status-probable {
+    background: var(--accent-green);
+    color: white;
+}
+
+.injury-details {
+    display: flex;
+    gap: var(--space-md);
+    margin-bottom: var(--space-sm);
+    font-size: 0.813rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.injury-description {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+/* ===== Matchup Insights Grid ===== */
+.matchup-insights-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: var(--space-md);
+}
+
+.insight-card {
+    background: var(--bg-tertiary);
+    padding: var(--space-lg);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-light);
+    transition: all var(--transition-base);
+}
+
+.insight-card:hover {
+    border-color: var(--accent-blue);
+    box-shadow: var(--shadow-sm);
+}
+
+.insight-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-md);
+}
+
+.insight-icon {
+    font-size: 1.75rem;
+}
+
+.insight-header h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.insight-rating {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--accent-blue);
+    margin-bottom: var(--space-sm);
+}
+
+.insight-description {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: var(--space-md);
+}
+
+.insight-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+}
+
+.insight-stat {
+    padding: var(--space-xs) var(--space-sm);
+    background: var(--bg-card);
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+/* ===== Top Props & Parlays Container ===== */
+.top-props-parlays-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-xl);
+}
+
+.top-props-column h3,
+.parlays-column h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--space-md);
+    padding-bottom: var(--space-sm);
+    border-bottom: 2px solid var(--border-light);
+}
+
+.top-prop-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    padding: var(--space-md);
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-light);
+    margin-bottom: var(--space-sm);
+    transition: all var(--transition-base);
+}
+
+.top-prop-item:hover {
+    border-color: var(--accent-blue);
+    box-shadow: var(--shadow-sm);
+}
+
+.top-prop-rank {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--accent-blue);
+    min-width: 40px;
+    text-align: center;
+}
+
+.top-prop-details {
+    flex: 1;
+}
+
+.top-prop-player {
+    font-weight: 700;
+    font-size: 0.938rem;
+    color: var(--text-primary);
+    margin-bottom: var(--space-xs);
+}
+
+.top-prop-market {
+    font-size: 0.813rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-xs);
+}
+
+.top-prop-odds {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.parlay-card {
+    background: var(--bg-tertiary);
+    padding: var(--space-lg);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-light);
+    margin-bottom: var(--space-md);
+    transition: all var(--transition-base);
+}
+
+.parlay-card:hover {
+    border-color: var(--accent-blue);
+    box-shadow: var(--shadow-sm);
+}
+
+.parlay-name {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--text-primary);
+}
+
+.parlay-confidence {
+    margin-top: var(--space-md);
+    padding-top: var(--space-md);
+    border-top: 1px solid var(--border-light);
+    font-size: 0.813rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+/* ===== Rating Badge Variants ===== */
+.rating-badge.excellent {
+    background: var(--accent-green-dim);
+    color: var(--accent-green);
+}
+
+.rating-badge.good {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.rating-badge.moderate {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.rating-badge.poor {
+    background: #fed7aa;
+    color: #ea580c;
 }
