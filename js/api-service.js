@@ -461,6 +461,199 @@ class NFLAPIService {
         return await this._fetch(`/api/v1/games/${gameId}/content${query}`);
     }
 
+    // ==================== TEAMS ====================
+
+    /**
+     * Get all NFL teams
+     * GET /api/v1/teams
+     */
+    async getTeams() {
+        if (!this.useBackend) {
+            return [];
+        }
+
+        return await this._fetch('/api/v1/teams');
+    }
+
+    /**
+     * Get team details
+     * GET /api/v1/teams/{team_id}
+     *
+     * @param {string} teamId - Team identifier (e.g., "KC", "BUF")
+     */
+    async getTeamDetails(teamId) {
+        if (!this.useBackend) {
+            return {
+                team_id: teamId,
+                team_name: '',
+                conference: '',
+                division: '',
+                wins: 0,
+                losses: 0,
+                ties: 0
+            };
+        }
+
+        return await this._fetch(`/api/v1/teams/${teamId}`);
+    }
+
+    /**
+     * Get team statistics
+     * GET /api/v1/teams/{team_id}/stats
+     *
+     * @param {string} teamId - Team identifier
+     * @param {number} season - Season year (default current season)
+     */
+    async getTeamStats(teamId, season = 2024) {
+        if (!this.useBackend) {
+            return {
+                team_id: teamId,
+                season: season,
+                offensive_stats: {},
+                defensive_stats: {},
+                rankings: {}
+            };
+        }
+
+        const params = new URLSearchParams({ season: season.toString() });
+        return await this._fetch(`/api/v1/teams/${teamId}/stats?${params.toString()}`);
+    }
+
+    /**
+     * Get team schedule
+     * GET /api/v1/teams/{team_id}/schedule
+     *
+     * @param {string} teamId - Team identifier
+     * @param {number} season - Season year (default current season)
+     */
+    async getTeamSchedule(teamId, season = 2024) {
+        if (!this.useBackend) {
+            return {
+                team_id: teamId,
+                season: season,
+                games: []
+            };
+        }
+
+        const params = new URLSearchParams({ season: season.toString() });
+        return await this._fetch(`/api/v1/teams/${teamId}/schedule?${params.toString()}`);
+    }
+
+    // ==================== PLAYERS ====================
+
+    /**
+     * Search/filter players
+     * GET /api/v1/players
+     *
+     * @param {Object} options - Query parameters
+     * @param {string} options.team - Filter by team
+     * @param {string} options.position - Filter by position
+     * @param {string} options.search - Search by name
+     * @param {number} options.limit - Max results
+     */
+    async getPlayers(options = {}) {
+        if (!this.useBackend) {
+            return [];
+        }
+
+        const params = new URLSearchParams();
+        if (options.team) params.append('team', options.team);
+        if (options.position) params.append('position', options.position);
+        if (options.search) params.append('search', options.search);
+        if (options.limit) params.append('limit', options.limit);
+
+        const query = params.toString() ? `?${params.toString()}` : '';
+        return await this._fetch(`/api/v1/players${query}`);
+    }
+
+    /**
+     * Get player details
+     * GET /api/v1/players/{player_id}
+     *
+     * @param {string} playerId - Player identifier
+     */
+    async getPlayerDetails(playerId) {
+        if (!this.useBackend) {
+            return {
+                player_id: playerId,
+                player_name: '',
+                team: '',
+                position: '',
+                jersey_number: null
+            };
+        }
+
+        return await this._fetch(`/api/v1/players/${playerId}`);
+    }
+
+    /**
+     * Get player statistics
+     * GET /api/v1/players/{player_id}/stats
+     *
+     * @param {string} playerId - Player identifier
+     * @param {number} season - Season year (default current season)
+     */
+    async getPlayerStats(playerId, season = 2024) {
+        if (!this.useBackend) {
+            return {
+                player_id: playerId,
+                season: season,
+                stats: {}
+            };
+        }
+
+        const params = new URLSearchParams({ season: season.toString() });
+        return await this._fetch(`/api/v1/players/${playerId}/stats?${params.toString()}`);
+    }
+
+    /**
+     * Get player game logs
+     * GET /api/v1/players/{player_id}/gamelogs
+     *
+     * @param {string} playerId - Player identifier
+     * @param {number} season - Season year (default current season)
+     * @param {number} limit - Max games to return
+     */
+    async getPlayerGameLog(playerId, season = 2024, limit = null) {
+        if (!this.useBackend) {
+            return {
+                player_id: playerId,
+                season: season,
+                games: []
+            };
+        }
+
+        const params = new URLSearchParams({ season: season.toString() });
+        if (limit) params.append('limit', limit);
+
+        return await this._fetch(`/api/v1/players/${playerId}/gamelogs?${params.toString()}`);
+    }
+
+    // ==================== BOX SCORES ====================
+
+    /**
+     * Get detailed box score for a game
+     * GET /api/v1/games/{game_id}/boxscore
+     *
+     * @param {string} gameId - Game identifier
+     */
+    async getBoxScore(gameId) {
+        if (!this.useBackend) {
+            return {
+                game_id: gameId,
+                away_team: '',
+                home_team: '',
+                away_score: 0,
+                home_score: 0,
+                quarter_scores: [],
+                team_stats: {},
+                top_performers: []
+            };
+        }
+
+        return await this._fetch(`/api/v1/games/${gameId}/boxscore`);
+    }
+
     // ==================== BACKTEST (Analytics/Trends) ====================
 
     /**
