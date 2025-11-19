@@ -1,6 +1,8 @@
 // Main app.js for home page functionality
 
 let currentDay = 0;
+let currentWeek = 11;
+let currentSeason = 2025;
 
 // Initialize the app when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
@@ -64,36 +66,112 @@ function setupEventListeners() {
 }
 
 function navigateWeek(direction) {
-    // This would update the week display and reload games
-    console.log(`Navigate week: ${direction}`);
-    // In production, this would call API with new week offset
+    currentWeek += direction;
+    if (currentWeek < 1) currentWeek = 1;
+    if (currentWeek > 18) currentWeek = 18;
+
+    console.log(`Navigate to week: ${currentWeek}`);
+    loadGames(0); // Reload current day's games for new week
 }
 
-function loadGames(dayOffset) {
+// Load games from backend API
+async function loadGames(dayOffset) {
     const gamesGrid = document.getElementById('gamesGrid');
     if (!gamesGrid) return;
 
-    const games = getGamesByDay(dayOffset);
+    // Show loading state
+    gamesGrid.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; padding: 4rem; color: var(--text-secondary);">
+            <p>Loading games...</p>
+        </div>
+    `;
 
-    if (games.length === 0) {
-        gamesGrid.innerHTML = `
-            <div style="grid-column: 1 / -1; text-align: center; padding: 4rem; color: var(--text-secondary);">
-                <h3>No games scheduled for this day</h3>
-                <p>Check another day for upcoming games</p>
-            </div>
-        `;
-        return;
-    }
-
-    gamesGrid.innerHTML = games.map(game => createGameCard(game)).join('');
-
-    // Add click handlers to game cards
-    document.querySelectorAll('.game-card').forEach(card => {
-        card.addEventListener('click', function() {
-            const gameId = this.getAttribute('data-game-id');
-            window.location.href = `game-detail.html?id=${gameId}`;
+    try {
+        // Try backend API first
+        const response = await apiService.getGames({
+            season: currentSeason,
+            week: currentWeek,
+            upcoming: true
         });
-    });
+
+        const games = response.games || [];
+
+        if (games.length === 0) {
+            gamesGrid.innerHTML = `
+                <div style="grid-column: 1 / -1; text-align: center; padding: 4rem; color: var(--text-secondary);">
+                    <h3>No games scheduled for this week</h3>
+                    <p>Check another week for upcoming games</p>
+                </div>
+            `;
+            return;
+        }
+
+        // Convert backend format to frontend format
+        const formattedGames = games.map(g => convertBackendGame(g));
+        gamesGrid.innerHTML = formattedGames.map(game => createGameCard(game)).join('');
+
+        // Add click handlers to game cards
+        document.querySelectorAll('.game-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const gameId = this.getAttribute('data-game-id');
+                window.location.href = `game-detail.html?id=${gameId}`;
+            });
+        });
+
+    } catch (error) {
+        console.error('Error loading games from backend:', error);
+
+        // Fallback to mock data
+        console.log('Falling back to mock data...');
+        const games = getGamesByDay(dayOffset);
+
+        if (games.length === 0) {
+            gamesGrid.innerHTML = `
+                <div style="grid-column: 1 / -1; text-align: center; padding: 4rem; color: var(--text-secondary);">
+                    <h3>No games scheduled for this day</h3>
+                    <p>Check another day for upcoming games</p>
+                </div>
+            `;
+            return;
+        }
+
+        gamesGrid.innerHTML = games.map(game => createGameCard(game)).join('');
+
+        // Add click handlers
+        document.querySelectorAll('.game-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const gameId = this.getAttribute('data-game-id');
+                window.location.href = `game-detail.html?id=${gameId}`;
+            });
+        });
+    }
+}
+
+// Convert backend game format to frontend format
+function convertBackendGame(backendGame) {
+    return {
+        id: backendGame.game_id,
+        homeTeam: backendGame.home_team,
+        awayTeam: backendGame.away_team,
+        homeRecord: '8-2', // Would come from team stats
+        awayRecord: '9-1', // Would come from team stats
+        date: backendGame.game_date,
+        time: backendGame.game_time || '13:00',
+        status: backendGame.completed ? 'Final' : 'Upcoming',
+        spread: {
+            home: -3.5, // Would come from odds data
+            away: 3.5
+        },
+        moneyline: {
+            home: -180,
+            away: +150
+        },
+        total: {
+            over: 54.5,
+            under: 54.5,
+            odds: -110
+        }
+    };
 }
 
 function createGameCard(game) {
@@ -102,40 +180,30 @@ function createGameCard(game) {
 
     return `
         <div class="game-card" data-game-id="${game.id}">
-            <div class="game-time">
-                <span>${formatTime(game.time)}</span>
-                <span class="game-status">${game.status}</span>
-            </div>
-
-            <div class="teams">
+            <div class="game-time">${formatTime(game.time)}</div>
+            <div class="game-matchup">
                 <div class="team">
-                    <div>
-                        <span class="team-name">${game.awayTeam}</span>
-                        <span class="team-record">${game.awayRecord}</span>
-                    </div>
+                    <span class="team-name">${game.awayTeam}</span>
+                    <span class="team-record">${game.awayRecord}</span>
                 </div>
+                <div class="at">@</div>
                 <div class="team">
-                    <div>
-                        <span class="team-name">${game.homeTeam}</span>
-                        <span class="team-record">${game.homeRecord}</span>
-                    </div>
+                    <span class="team-name">${game.homeTeam}</span>
+                    <span class="team-record">${game.homeRecord}</span>
                 </div>
             </div>
-
-            <div class="betting-lines">
-                <div class="line-item">
-                    <div class="line-label">Spread</div>
-                    <div class="line-value">${homeSpread}</div>
+            <div class="game-lines">
+                <div class="game-line">
+                    <span class="line-label">Spread</span>
+                    <span class="line-value">${homeSpread}</span>
                 </div>
-                <div class="line-item">
-                    <div class="line-label">Total</div>
-                    <div class="line-value">${game.total.over}</div>
+                <div class="game-line">
+                    <span class="line-label">Total</span>
+                    <span class="line-value">${game.total.over}</span>
                 </div>
-                <div class="line-item">
-                    <div class="line-label">Moneyline</div>
-                    <div class="line-value ${game.moneyline.home > 0 ? 'positive' : 'negative'}">
-                        ${formatOdds(game.moneyline.home)}
-                    </div>
+                <div class="game-line">
+                    <span class="line-label">ML</span>
+                    <span class="line-value ${game.moneyline.home > 0 ? 'positive-odds' : ''}">${formatOdds(game.moneyline.home)}</span>
                 </div>
             </div>
         </div>
@@ -146,206 +214,458 @@ function formatTime(time) {
     const [hours, minutes] = time.split(':');
     const hour = parseInt(hours);
     const ampm = hour >= 12 ? 'PM' : 'AM';
-    const displayHour = hour % 12 || 12;
+    const displayHour = hour > 12 ? hour - 12 : (hour === 0 ? 12 : hour);
     return `${displayHour}:${minutes} ${ampm} ET`;
 }
 
-// Load Best Bets section
-function loadBestBets() {
+// Load Best Bets from backend API
+async function loadBestBets() {
     const container = document.getElementById('bestBetsGrid');
     if (!container) return;
 
-    const bestBets = [
-        {
-            game: 'Kansas City @ Buffalo',
-            pick: 'Over 54.5',
-            odds: '-110',
-            confidence: 'High',
-            reason: '8-2 record on overs in matchups this season'
-        },
-        {
-            game: 'Philadelphia @ Dallas',
-            pick: 'Eagles -7.5',
-            odds: '-110',
-            confidence: 'High',
-            reason: 'Eagles 8-2 ATS in last 10 games'
-        },
-        {
-            game: 'Green Bay vs Chicago',
-            pick: 'Packers ML',
-            odds: '-420',
-            confidence: 'Medium',
-            reason: 'Packers dominant at home this season'
-        },
-        {
-            game: 'Baltimore vs Cincinnati',
-            pick: 'Under 52.5',
-            odds: '-110',
-            confidence: 'Medium',
-            reason: 'Strong defensive matchup, weather concerns'
-        }
-    ];
+    // Show loading state
+    container.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; padding: 2rem; color: var(--text-secondary);">
+            <p>Loading best bets...</p>
+        </div>
+    `;
 
-    container.innerHTML = bestBets.map(bet => `
+    try {
+        // Get today's games
+        const gamesResponse = await apiService.getGames({
+            season: currentSeason,
+            week: currentWeek,
+            upcoming: true
+        });
+
+        const games = gamesResponse.games || [];
+
+        if (games.length === 0) {
+            throw new Error('No games available');
+        }
+
+        // Get recommendations for each game (limit to first 4 games)
+        const allRecommendations = [];
+        for (const game of games.slice(0, 4)) {
+            try {
+                const recs = await apiService.getRecommendations(game.game_id, {
+                    limit: 2,
+                    min_confidence: 0.6
+                });
+
+                // Add game context to each recommendation
+                recs.recommendations.forEach(rec => {
+                    rec.game_context = `${game.away_team} @ ${game.home_team}`;
+                });
+
+                allRecommendations.push(...recs.recommendations);
+            } catch (err) {
+                console.warn(`Could not load recommendations for game ${game.game_id}:`, err);
+            }
+        }
+
+        if (allRecommendations.length === 0) {
+            throw new Error('No recommendations available');
+        }
+
+        // Sort by overall_score and take top 4
+        const bestBets = allRecommendations
+            .sort((a, b) => b.overall_score - a.overall_score)
+            .slice(0, 4);
+
+        // Render
+        container.innerHTML = bestBets.map(bet => createBestBetCard(bet)).join('');
+
+    } catch (error) {
+        console.error('Error loading best bets from backend:', error);
+
+        // Fallback to hardcoded data
+        const bestBets = [
+            {
+                game: 'Kansas City @ Buffalo',
+                pick: 'Over 54.5',
+                odds: '-110',
+                confidence: 'High',
+                reason: '8-2 record on overs in matchups this season'
+            },
+            {
+                game: 'Philadelphia @ Dallas',
+                pick: 'Eagles -7.5',
+                odds: '-110',
+                confidence: 'High',
+                reason: 'Eagles 8-2 ATS in last 10 games'
+            },
+            {
+                game: 'Green Bay vs Chicago',
+                pick: 'Packers ML',
+                odds: '-420',
+                confidence: 'Medium',
+                reason: 'Packers dominant at home this season'
+            },
+            {
+                game: 'Baltimore vs Cincinnati',
+                pick: 'Under 52.5',
+                odds: '-110',
+                confidence: 'Medium',
+                reason: 'Strong defensive matchup, weather concerns'
+            }
+        ];
+
+        container.innerHTML = bestBets.map(bet => `
+            <div class="best-bet-card">
+                <div class="best-bet-header">
+                    <div class="best-bet-matchup">
+                        <div class="best-bet-game">${bet.game}</div>
+                        <div class="best-bet-pick">${bet.pick}</div>
+                    </div>
+                    <div class="best-bet-confidence">${bet.confidence}</div>
+                </div>
+                <div class="best-bet-details">
+                    <div class="best-bet-odds">${bet.odds}</div>
+                    <div class="best-bet-reason">${bet.reason}</div>
+                </div>
+            </div>
+        `).join('');
+    }
+}
+
+function createBestBetCard(rec) {
+    const confidence = rec.recommendation_strength === 'elite' || rec.recommendation_strength === 'strong' ? 'High' : 'Medium';
+    const odds = rec.market_odds ? formatOdds(rec.market_odds) : '-110';
+    const pick = `${rec.player_name} ${formatMarketName(rec.market)} ${rec.line}`;
+    const reason = rec.reasoning && rec.reasoning.length > 0 ? rec.reasoning[0] : `Score: ${(rec.overall_score * 100).toFixed(0)}%`;
+
+    return `
         <div class="best-bet-card">
             <div class="best-bet-header">
                 <div class="best-bet-matchup">
-                    <div class="best-bet-game">${bet.game}</div>
-                    <div class="best-bet-pick">${bet.pick}</div>
+                    <div class="best-bet-game">${rec.game_context || 'Game'}</div>
+                    <div class="best-bet-pick">${pick}</div>
                 </div>
-                <div class="best-bet-confidence">${bet.confidence}</div>
+                <div class="best-bet-confidence">${confidence}</div>
             </div>
             <div class="best-bet-details">
-                <div class="best-bet-odds">${bet.odds}</div>
-                <div class="best-bet-reason">${bet.reason}</div>
+                <div class="best-bet-odds">${odds}</div>
+                <div class="best-bet-reason">${reason}</div>
             </div>
         </div>
-    `).join('');
+    `;
 }
 
-// Load Best Props section
-function loadBestProps() {
+function formatMarketName(market) {
+    // Convert player_passing_yds to "Over Passing Yds"
+    const parts = market.replace('player_', '').split('_');
+    return 'Over ' + parts.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
+}
+
+// Load Best Props from backend API
+async function loadBestProps() {
     const container = document.getElementById('bestPropsList');
     if (!container) return;
 
-    const bestProps = [
-        {
-            rank: 1,
-            player: 'Patrick Mahomes',
-            team: 'KC',
-            prop: 'Over 287.5 Passing Yards',
-            line: '287.5',
-            odds: '-115',
-            rating: 'excellent'
-        },
-        {
-            rank: 2,
-            player: 'Josh Allen',
-            team: 'BUF',
-            prop: 'Over 42.5 Rushing Yards',
-            line: '42.5',
-            odds: '-120',
-            rating: 'excellent'
-        },
-        {
-            rank: 3,
-            player: 'Travis Kelce',
-            team: 'KC',
-            prop: 'Over 5.5 Receptions',
-            line: '5.5',
-            odds: '-130',
-            rating: 'good'
-        },
-        {
-            rank: 4,
-            player: 'Stefon Diggs',
-            team: 'BUF',
-            prop: 'Over 73.5 Receiving Yards',
-            line: '73.5',
-            odds: '+100',
-            rating: 'good'
-        },
-        {
-            rank: 5,
-            player: 'Jalen Hurts',
-            team: 'PHI',
-            prop: 'Over 1.5 Passing TDs',
-            line: '1.5',
-            odds: '-145',
-            rating: 'good'
-        }
-    ];
-
-    container.innerHTML = bestProps.map(prop => `
-        <div class="best-prop-item">
-            <div class="best-prop-rank">${prop.rank}</div>
-            <div class="best-prop-player">
-                <div class="best-prop-name">${prop.player}</div>
-                <div class="best-prop-desc">${prop.prop}</div>
-            </div>
-            <div class="best-prop-line">
-                <div class="best-prop-type">Line</div>
-                <div class="best-prop-value">${prop.line}</div>
-            </div>
-            <div class="rating-badge ${getRatingClass(prop.rating)}">${prop.rating}</div>
+    // Show loading state
+    container.innerHTML = `
+        <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+            <p>Loading best props...</p>
         </div>
-    `).join('');
+    `;
+
+    try {
+        // Get today's games
+        const gamesResponse = await apiService.getGames({
+            season: currentSeason,
+            week: currentWeek,
+            upcoming: true
+        });
+
+        const games = gamesResponse.games || [];
+
+        if (games.length === 0) {
+            throw new Error('No games available');
+        }
+
+        // Get recommendations for each game (player props only)
+        const allProps = [];
+        for (const game of games) {
+            try {
+                const recs = await apiService.getRecommendations(game.game_id, {
+                    limit: 10,
+                    min_confidence: 0.65
+                });
+
+                allProps.push(...recs.recommendations);
+            } catch (err) {
+                console.warn(`Could not load props for game ${game.game_id}:`, err);
+            }
+        }
+
+        if (allProps.length === 0) {
+            throw new Error('No props available');
+        }
+
+        // Sort by overall_score and take top 5
+        const bestProps = allProps
+            .sort((a, b) => b.overall_score - a.overall_score)
+            .slice(0, 5)
+            .map((prop, index) => ({
+                rank: index + 1,
+                player: prop.player_name,
+                team: prop.team,
+                prop: `Over ${prop.line} ${formatMarketName(prop.market)}`,
+                line: prop.line,
+                odds: prop.market_odds ? formatOdds(prop.market_odds) : '-110',
+                rating: mapConfidenceToRating(prop.confidence)
+            }));
+
+        // Render
+        container.innerHTML = bestProps.map(prop => `
+            <div class="best-prop-item">
+                <div class="best-prop-rank">${prop.rank}</div>
+                <div class="best-prop-info">
+                    <div class="best-prop-player">${prop.player} <span class="best-prop-team">${prop.team}</span></div>
+                    <div class="best-prop-line">${prop.prop}</div>
+                </div>
+                <div class="best-prop-odds">${prop.odds}</div>
+                <div class="rating-badge ${getRatingClass(prop.rating)}">${prop.rating}</div>
+            </div>
+        `).join('');
+
+    } catch (error) {
+        console.error('Error loading best props from backend:', error);
+
+        // Fallback to hardcoded data
+        const bestProps = [
+            {
+                rank: 1,
+                player: 'Patrick Mahomes',
+                team: 'KC',
+                prop: 'Over 287.5 Passing Yards',
+                line: '287.5',
+                odds: '-115',
+                rating: 'excellent'
+            },
+            {
+                rank: 2,
+                player: 'Josh Allen',
+                team: 'BUF',
+                prop: 'Over 42.5 Rushing Yards',
+                line: '42.5',
+                odds: '-120',
+                rating: 'excellent'
+            },
+            {
+                rank: 3,
+                player: 'Travis Kelce',
+                team: 'KC',
+                prop: 'Over 5.5 Receptions',
+                line: '5.5',
+                odds: '-130',
+                rating: 'good'
+            },
+            {
+                rank: 4,
+                player: 'Stefon Diggs',
+                team: 'BUF',
+                prop: 'Over 73.5 Receiving Yards',
+                line: '73.5',
+                odds: '+100',
+                rating: 'good'
+            },
+            {
+                rank: 5,
+                player: 'Jalen Hurts',
+                team: 'PHI',
+                prop: 'Over 1.5 Passing TDs',
+                line: '1.5',
+                odds: '-135',
+                rating: 'moderate'
+            }
+        ];
+
+        container.innerHTML = bestProps.map(prop => `
+            <div class="best-prop-item">
+                <div class="best-prop-rank">${prop.rank}</div>
+                <div class="best-prop-info">
+                    <div class="best-prop-player">${prop.player} <span class="best-prop-team">${prop.team}</span></div>
+                    <div class="best-prop-line">${prop.prop}</div>
+                </div>
+                <div class="best-prop-odds">${prop.odds}</div>
+                <div class="rating-badge ${getRatingClass(prop.rating)}">${prop.rating}</div>
+            </div>
+        `).join('');
+    }
 }
 
-// Load Player Projections section
-function loadProjections() {
+function mapConfidenceToRating(confidence) {
+    if (confidence >= 0.8) return 'excellent';
+    if (confidence >= 0.7) return 'good';
+    if (confidence >= 0.6) return 'moderate';
+    return 'poor';
+}
+
+// Load Player Projections from backend API
+async function loadProjections() {
     const container = document.getElementById('projectionsBody');
     if (!container) return;
 
-    const projections = [
-        {
-            player: 'Patrick Mahomes',
-            team: 'KC',
-            passYds: 298,
-            passTD: 2.5,
-            rushYds: 12,
-            recYds: '-',
-            fantasyPts: 24.3
-        },
-        {
-            player: 'Josh Allen',
-            team: 'BUF',
-            passYds: 276,
-            passTD: 2.3,
-            rushYds: 48,
-            recYds: '-',
-            fantasyPts: 25.1
-        },
-        {
-            player: 'Travis Kelce',
-            team: 'KC',
-            passYds: '-',
-            passTD: '-',
-            rushYds: 2,
-            recYds: 72,
-            fantasyPts: 13.2
-        },
-        {
-            player: 'Stefon Diggs',
-            team: 'BUF',
-            passYds: '-',
-            passTD: '-',
-            rushYds: 1,
-            recYds: 84,
-            fantasyPts: 14.9
-        },
-        {
-            player: 'Jalen Hurts',
-            team: 'PHI',
-            passYds: 245,
-            passTD: 2.1,
-            rushYds: 52,
-            recYds: '-',
-            fantasyPts: 23.7
-        },
-        {
-            player: 'A.J. Brown',
-            team: 'PHI',
-            passYds: '-',
-            passTD: '-',
-            rushYds: 0,
-            recYds: 91,
-            fantasyPts: 15.6
-        }
-    ];
-
-    container.innerHTML = projections.map(proj => `
+    // Show loading state
+    container.innerHTML = `
         <tr>
-            <td>
-                <div class="projection-player">${proj.player}</div>
-                <div class="projection-team">${proj.team}</div>
+            <td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                Loading projections...
             </td>
-            <td class="projection-team">${proj.team}</td>
-            <td class="projection-value ${proj.passYds > 250 ? 'projection-high' : ''}">${proj.passYds}</td>
-            <td class="projection-value">${proj.passTD}</td>
-            <td class="projection-value ${proj.rushYds > 40 ? 'projection-high' : ''}">${proj.rushYds}</td>
-            <td class="projection-value ${proj.recYds > 80 ? 'projection-high' : ''}">${proj.recYds}</td>
-            <td class="projection-value ${proj.fantasyPts > 20 ? 'projection-high' : ''}">${proj.fantasyPts}</td>
         </tr>
-    `).join('');
+    `;
+
+    try {
+        // Get today's games
+        const gamesResponse = await apiService.getGames({
+            season: currentSeason,
+            week: currentWeek,
+            upcoming: true
+        });
+
+        const games = gamesResponse.games || [];
+
+        if (games.length === 0) {
+            throw new Error('No games available');
+        }
+
+        // Get projections for first 2 games
+        const allProjections = [];
+        for (const game of games.slice(0, 2)) {
+            try {
+                const projs = await apiService.getGameProjections(game.game_id, {
+                    limit: 10
+                });
+
+                allProjections.push(...projs.projections);
+            } catch (err) {
+                console.warn(`Could not load projections for game ${game.game_id}:`, err);
+            }
+        }
+
+        if (allProjections.length === 0) {
+            throw new Error('No projections available');
+        }
+
+        // Group by player and aggregate stats
+        const playerMap = new Map();
+        allProjections.forEach(proj => {
+            if (!playerMap.has(proj.player_id)) {
+                playerMap.set(proj.player_id, {
+                    player: proj.player_name,
+                    team: proj.team,
+                    passYds: '-',
+                    passTD: '-',
+                    rushYds: '-',
+                    recYds: '-',
+                    fantasyPts: 0
+                });
+            }
+
+            const player = playerMap.get(proj.player_id);
+
+            // Map market to stat category
+            if (proj.market.includes('passing_yds')) player.passYds = Math.round(proj.mu);
+            if (proj.market.includes('passing_td')) player.passTD = proj.mu.toFixed(1);
+            if (proj.market.includes('rushing_yds')) player.rushYds = Math.round(proj.mu);
+            if (proj.market.includes('receiving_yds') || proj.market.includes('rec_yds')) player.recYds = Math.round(proj.mu);
+        });
+
+        // Convert to array and take top 6
+        const projections = Array.from(playerMap.values()).slice(0, 6);
+
+        // Render
+        container.innerHTML = projections.map(proj => `
+            <tr>
+                <td>
+                    <div class="projection-player">${proj.player}</div>
+                    <div class="projection-team">${proj.team}</div>
+                </td>
+                <td class="projection-team">${proj.team}</td>
+                <td class="projection-value ${proj.passYds > 250 ? 'projection-high' : ''}">${proj.passYds}</td>
+                <td class="projection-value">${proj.passTD}</td>
+                <td class="projection-value ${proj.rushYds > 40 ? 'projection-high' : ''}">${proj.rushYds}</td>
+                <td class="projection-value ${proj.recYds > 80 ? 'projection-high' : ''}">${proj.recYds}</td>
+                <td class="projection-value ${proj.fantasyPts > 20 ? 'projection-high' : ''}">${proj.fantasyPts}</td>
+            </tr>
+        `).join('');
+
+    } catch (error) {
+        console.error('Error loading projections from backend:', error);
+
+        // Fallback to hardcoded data
+        const projections = [
+            {
+                player: 'Patrick Mahomes',
+                team: 'KC',
+                passYds: 298,
+                passTD: 2.5,
+                rushYds: 12,
+                recYds: '-',
+                fantasyPts: 24.3
+            },
+            {
+                player: 'Josh Allen',
+                team: 'BUF',
+                passYds: 276,
+                passTD: 2.3,
+                rushYds: 48,
+                recYds: '-',
+                fantasyPts: 25.1
+            },
+            {
+                player: 'Travis Kelce',
+                team: 'KC',
+                passYds: '-',
+                passTD: '-',
+                rushYds: 2,
+                recYds: 72,
+                fantasyPts: 13.2
+            },
+            {
+                player: 'Stefon Diggs',
+                team: 'BUF',
+                passYds: '-',
+                passTD: '-',
+                rushYds: 1,
+                recYds: 84,
+                fantasyPts: 14.9
+            },
+            {
+                player: 'Jalen Hurts',
+                team: 'PHI',
+                passYds: 245,
+                passTD: 2.1,
+                rushYds: 52,
+                recYds: '-',
+                fantasyPts: 23.7
+            },
+            {
+                player: 'A.J. Brown',
+                team: 'PHI',
+                passYds: '-',
+                passTD: '-',
+                rushYds: 0,
+                recYds: 91,
+                fantasyPts: 15.6
+            }
+        ];
+
+        container.innerHTML = projections.map(proj => `
+            <tr>
+                <td>
+                    <div class="projection-player">${proj.player}</div>
+                    <div class="projection-team">${proj.team}</div>
+                </td>
+                <td class="projection-team">${proj.team}</td>
+                <td class="projection-value ${proj.passYds > 250 ? 'projection-high' : ''}">${proj.passYds}</td>
+                <td class="projection-value">${proj.passTD}</td>
+                <td class="projection-value ${proj.rushYds > 40 ? 'projection-high' : ''}">${proj.rushYds}</td>
+                <td class="projection-value ${proj.recYds > 80 ? 'projection-high' : ''}">${proj.recYds}</td>
+                <td class="projection-value ${proj.fantasyPts > 20 ? 'projection-high' : ''}">${proj.fantasyPts}</td>
+            </tr>
+        `).join('');
+    }
 }

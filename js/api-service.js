@@ -11,7 +11,7 @@
 const API_CONFIG = {
     baseURL: 'http://localhost:8000',
     timeout: 10000, // 10 seconds
-    useBackend: false // Set to true to use real backend, false for mock data
+    useBackend: true // Set to true to use real backend, false for mock data
 };
 
 /**

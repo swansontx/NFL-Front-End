@@ -74,48 +74,88 @@ function setupEventListeners() {
     }
 }
 
-function loadAvailableGames() {
+async function loadAvailableGames() {
     const gameSelector = document.getElementById('gameSelector');
     if (!gameSelector) return;
 
-    // Get all games from the next 7 days
-    const allGames = [];
-    for (let i = 0; i < 7; i++) {
-        const dayGames = getGamesByDay(i);
-        allGames.push(...dayGames);
-    }
+    // Show loading
+    gameSelector.innerHTML = '<p style="text-align: center; padding: 1rem; color: var(--text-secondary);">Loading games...</p>';
 
-    gameSelector.innerHTML = allGames.map(game => `
-        <label class="game-checkbox">
-            <input type="checkbox" value="${game.id}" class="game-checkbox-input">
-            <span class="game-checkbox-label">
-                ${game.awayTeam} @ ${game.homeTeam}<br>
-                <small style="color: var(--text-secondary);">${formatGameDateTime(game.date, game.time)}</small>
-            </span>
-        </label>
-    `).join('');
-
-    // Add event listeners to checkboxes
-    const checkboxes = gameSelector.querySelectorAll('.game-checkbox-input');
-    checkboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            updateSelectedGames();
+    try {
+        // Try to load from backend
+        const response = await apiService.getGames({
+            season: 2025,
+            week: 11,
+            upcoming: true
         });
-    });
+
+        const allGames = response.games || [];
+
+        if (allGames.length === 0) {
+            throw new Error('No games available');
+        }
+
+        // Render game checkboxes
+        gameSelector.innerHTML = allGames.map(game => `
+            <label class="game-checkbox">
+                <input type="checkbox" value="${game.game_id}" class="game-checkbox-input">
+                <span class="game-checkbox-label">
+                    ${game.away_team} @ ${game.home_team}<br>
+                    <small style="color: var(--text-secondary);">${formatBackendGameDateTime(game.game_date, game.game_time)}</small>
+                </span>
+            </label>
+        `).join('');
+
+        // Add event listeners to checkboxes
+        const checkboxes = gameSelector.querySelectorAll('.game-checkbox-input');
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                updateSelectedGames();
+            });
+        });
+
+    } catch (error) {
+        console.error('Error loading games from backend:', error);
+
+        // Fallback to mock data
+        const allGames = [];
+        for (let i = 0; i < 7; i++) {
+            const dayGames = getGamesByDay(i);
+            allGames.push(...dayGames);
+        }
+
+        gameSelector.innerHTML = allGames.map(game => `
+            <label class="game-checkbox">
+                <input type="checkbox" value="${game.id}" class="game-checkbox-input">
+                <span class="game-checkbox-label">
+                    ${game.awayTeam} @ ${game.homeTeam}<br>
+                    <small style="color: var(--text-secondary);">${formatGameDateTime(game.date, game.time)}</small>
+                </span>
+            </label>
+        `).join('');
+
+        // Add event listeners to checkboxes
+        const checkboxes = gameSelector.querySelectorAll('.game-checkbox-input');
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                updateSelectedGames();
+            });
+        });
+    }
 }
 
 function updateSelectedGames() {
     const checkboxes = document.querySelectorAll('.game-checkbox-input:checked');
-    selectedGames = Array.from(checkboxes).map(cb => parseInt(cb.value));
+    selectedGames = Array.from(checkboxes).map(cb => cb.value);
 }
 
 function updateGameSelector() {
     // This would update the game selector based on same game parlay setting
-    // For now, just log
     console.log('Same game parlay:', sameGameParlay);
 }
 
-function generateParlays() {
+// Generate parlays using backend's correlation-adjusted logic
+async function generateParlays() {
     if (selectedGames.length === 0) {
         showEmptyState('Please select at least one game to generate parlays');
         return;
@@ -126,14 +166,221 @@ function generateParlays() {
         return;
     }
 
-    // Generate parlays based on actual market lines
-    const parlays = createParlaysFromMarketLines();
-    displayParlays(parlays);
+    // Show loading state
+    const parlayCards = document.getElementById('parlayCards');
+    const resultsCount = document.getElementById('resultsCount');
+
+    if (parlayCards) {
+        parlayCards.innerHTML = '<div class="empty-state"><p>Generating parlays with correlation analysis...</p></div>';
+    }
+    if (resultsCount) {
+        resultsCount.textContent = 'Loading...';
+    }
+
+    try {
+        let parlays;
+
+        if (sameGameParlay) {
+            // Use backend's correlation-adjusted same-game parlays
+            parlays = await generateSameGameParlaysFromBackend();
+        } else {
+            // Generate multi-game parlays
+            parlays = await generateMultiGameParlaysFromBackend();
+        }
+
+        if (parlays.length === 0) {
+            showEmptyState('No parlays could be generated with current settings. Try different games or category.');
+            return;
+        }
+
+        displayParlays(parlays);
+
+    } catch (error) {
+        console.error('Error generating parlays from backend:', error);
+        console.log('Falling back to local parlay generation...');
+
+        // Fallback to original logic
+        const parlays = createParlaysFromMarketLines();
+        displayParlays(parlays);
+    }
 }
 
+// Generate same-game parlays using backend correlation analysis
+async function generateSameGameParlaysFromBackend() {
+    const gameId = selectedGames[0];
+
+    // Map category to correlation constraints
+    let minCorr = 0.0;
+    let maxCorr = 0.8;
+
+    if (selectedCategory === 'conservative') {
+        minCorr = -0.2;  // Allow slightly negative correlation for hedging
+        maxCorr = 0.5;   // Avoid highly correlated props
+    } else if (selectedCategory === 'lotto') {
+        minCorr = 0.3;   // Want positive correlation for big wins
+        maxCorr = 1.0;   // Allow highly correlated props
+    }
+
+    const response = await apiService.getParlays(gameId, {
+        parlay_size: numLegs,
+        min_correlation: minCorr,
+        max_correlation: maxCorr,
+        limit: 5
+    });
+
+    // Convert backend parlays to frontend format
+    return response.parlays.map((parlay, index) => {
+        const categoryName = selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1);
+
+        return {
+            id: index + 1,
+            title: `${categoryName} ${numLegs}-Leg Same Game Parlay (${parlay.correlation_impact})`,
+            legs: parlay.props.map(prop => ({
+                game: `${prop.player_name}`,
+                bet: `${prop.market} ${prop.line}`,
+                odds: probabilityToAmericanOdds(prop.probability)
+            })),
+            odds: probabilityToAmericanOdds(parlay.adjusted_probability),
+            confidence: mapScoreToConfidence(parlay.overall_score),
+            potentialPayout: calculatePayout(100, probabilityToAmericanOdds(parlay.adjusted_probability)),
+            correlationAdjusted: true,
+            adjustmentFactor: parlay.adjustment_factor,
+            edge: parlay.edge || 0
+        };
+    });
+}
+
+// Generate multi-game parlays
+async function generateMultiGameParlaysFromBackend() {
+    // Get recommendations from all selected games
+    const allRecommendations = [];
+
+    for (const gameId of selectedGames) {
+        try {
+            const recs = await apiService.getRecommendations(gameId, {
+                limit: 10,
+                min_confidence: 0.6
+            });
+
+            recs.recommendations.forEach(rec => {
+                rec.game_context = `${rec.team}`;
+                rec.game_id = gameId;
+            });
+
+            allRecommendations.push(...recs.recommendations);
+        } catch (err) {
+            console.warn(`Could not load recommendations for game ${gameId}:`, err);
+        }
+    }
+
+    if (allRecommendations.length < numLegs) {
+        return [];
+    }
+
+    // Filter by category confidence
+    let filteredRecs = allRecommendations;
+    if (selectedCategory === 'conservative') {
+        filteredRecs = allRecommendations.filter(r => r.confidence >= 0.7);
+    } else if (selectedCategory === 'moderate') {
+        filteredRecs = allRecommendations.filter(r => r.confidence >= 0.6 && r.confidence < 0.8);
+    } else {
+        filteredRecs = allRecommendations.filter(r => r.confidence < 0.7 && r.overall_score > 0.5);
+    }
+
+    if (filteredRecs.length < numLegs) {
+        filteredRecs = allRecommendations; // Fallback to all recs
+    }
+
+    // Sort by overall_score
+    filteredRecs.sort((a, b) => b.overall_score - a.overall_score);
+
+    // Generate 5 parlay variations
+    const parlays = [];
+    for (let i = 0; i < 5; i++) {
+        const parlay = buildMultiGameParlay(filteredRecs, i);
+        if (parlay) parlays.push(parlay);
+    }
+
+    return parlays;
+}
+
+function buildMultiGameParlay(recommendations, seed) {
+    // Shuffle for variation
+    const shuffled = [...recommendations].sort(() => 0.5 - Math.random() * (seed + 1));
+
+    const legs = [];
+    const usedGames = new Set();
+
+    // One bet per game for multi-game parlays
+    for (const rec of shuffled) {
+        if (legs.length >= numLegs) break;
+        if (usedGames.has(rec.game_id)) continue;
+
+        legs.push({
+            game: rec.game_context,
+            bet: `${rec.player_name} ${formatMarketName(rec.market)} ${rec.line}`,
+            odds: rec.market_odds || -110
+        });
+
+        usedGames.add(rec.game_id);
+    }
+
+    if (legs.length < numLegs) return null;
+
+    // Calculate parlay odds
+    const parlayOdds = calculateParlayOdds(legs.map(l => l.odds));
+
+    // Determine confidence
+    const avgConfidence = legs.reduce((sum, leg) => {
+        const rec = recommendations.find(r => leg.bet.includes(r.player_name));
+        return sum + (rec ? rec.confidence : 0.6);
+    }, 0) / legs.length;
+
+    const categoryName = selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1);
+
+    return {
+        id: seed + 1,
+        title: `${categoryName} ${numLegs}-Leg Multi-Game Parlay`,
+        legs: legs,
+        odds: parlayOdds,
+        confidence: mapConfidenceToRating(avgConfidence),
+        potentialPayout: calculatePayout(100, parlayOdds)
+    };
+}
+
+function formatMarketName(market) {
+    // Convert player_passing_yds to "Over Passing Yds"
+    const parts = market.replace('player_', '').split('_');
+    return 'Over ' + parts.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
+}
+
+function mapScoreToConfidence(score) {
+    if (score >= 0.8) return 'excellent';
+    if (score >= 0.7) return 'good';
+    if (score >= 0.6) return 'moderate';
+    return 'poor';
+}
+
+function mapConfidenceToRating(confidence) {
+    if (confidence >= 0.8) return 'excellent';
+    if (confidence >= 0.7) return 'good';
+    if (confidence >= 0.6) return 'moderate';
+    return 'poor';
+}
+
+// Convert probability to American odds
+function probabilityToAmericanOdds(probability) {
+    if (probability >= 0.5) {
+        return Math.round(-100 * probability / (1 - probability));
+    } else {
+        return Math.round(100 * (1 - probability) / probability);
+    }
+}
+
+// Fallback: Create parlays from market lines (original logic)
 function createParlaysFromMarketLines() {
     const parlays = [];
-    const numParlays = 5; // Generate 5 different parlay options
+    const numParlays = 5;
 
     // Get available market lines based on settings
     let availableLines;
@@ -143,9 +390,8 @@ function createParlaysFromMarketLines() {
         availableLines = getMarketLinesForGames(selectedGames, selectedCategory);
     }
 
-    // Check if we have enough lines to create parlays
+    // Check if we have enough lines
     if (availableLines.length < numLegs) {
-        showEmptyState(`Not enough ${selectedCategory} bets available for ${numLegs}-leg parlay. Try selecting more games or a different category.`);
         return [];
     }
 
@@ -161,7 +407,7 @@ function createParlaysFromMarketLines() {
 }
 
 function buildParlay(availableLines, seed) {
-    // Shuffle lines to create variation (using seed for different combinations)
+    // Shuffle lines to create variation
     const shuffled = [...availableLines].sort(() => 0.5 - Math.random() * (seed + 1));
 
     const legs = [];
@@ -266,13 +512,20 @@ function displayParlays(parlays) {
 
     resultsCount.textContent = `${parlays.length} parlay${parlays.length !== 1 ? 's' : ''} generated`;
 
-    parlayCards.innerHTML = parlays.map(parlay => `
+    parlayCards.innerHTML = parlays.map(parlay => {
+        const correlationBadge = parlay.correlationAdjusted
+            ? `<span class="correlation-badge" title="Correlation adjustment: ${(parlay.adjustmentFactor * 100).toFixed(0)}%">
+                📊 Correlation Adjusted
+               </span>`
+            : '';
+
+        return `
         <div class="parlay-card">
             <div class="parlay-header">
                 <div class="parlay-title">${parlay.title}</div>
                 <div class="parlay-odds">${formatOdds(parlay.odds)}</div>
             </div>
-
+            ${correlationBadge}
             <div class="parlay-legs">
                 ${parlay.legs.map(leg => `
                     <div class="parlay-leg">
@@ -298,7 +551,7 @@ function displayParlays(parlays) {
                 </div>
             </div>
         </div>
-    `).join('');
+    `}).join('');
 }
 
 function showEmptyState(message) {
@@ -310,6 +563,34 @@ function showEmptyState(message) {
             <p>${message}</p>
         </div>
     `;
+}
+
+function formatBackendGameDateTime(dateStr, timeStr) {
+    const gameDate = new Date(dateStr);
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    let dateDisplay;
+    if (gameDate.toDateString() === today.toDateString()) {
+        dateDisplay = 'Today';
+    } else if (gameDate.toDateString() === tomorrow.toDateString()) {
+        dateDisplay = 'Tomorrow';
+    } else {
+        const options = { weekday: 'short', month: 'short', day: 'numeric' };
+        dateDisplay = gameDate.toLocaleDateString('en-US', options);
+    }
+
+    if (timeStr) {
+        const [hours, minutes] = timeStr.split(':');
+        const hour = parseInt(hours);
+        const ampm = hour >= 12 ? 'PM' : 'AM';
+        const displayHour = hour % 12 || 12;
+        const timeDisplay = `${displayHour}:${minutes} ${ampm}`;
+        return `${dateDisplay} ${timeDisplay}`;
+    }
+
+    return dateDisplay;
 }
 
 function formatGameDateTime(date, time) {

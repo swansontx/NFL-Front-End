@@ -1399,6 +1399,18 @@ body {
     color: var(--accent-green);
 }
 
+.correlation-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: var(--space-xs) var(--space-sm);
+    border-radius: var(--radius-md);
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin: var(--space-sm) 0;
+    cursor: help;
+}
+
 /* ===== Responsive Design ===== */
 @media (max-width: 1200px) {
     .container {

@@ -47,8 +47,19 @@ function setupEventListeners() {
     }
 }
 
-function loadGameDetails() {
-    const game = getGameById(currentGameId);
+// Load game details from backend API
+async function loadGameDetails() {
+    // First try to load game info from backend
+    let game = null;
+    try {
+        const gameResponse = await apiService.getGame(currentGameId);
+        game = convertBackendGameToFrontend(gameResponse);
+    } catch (error) {
+        console.error('Error loading game from backend:', error);
+        // Fallback to mock data
+        game = getGameById(currentGameId);
+    }
+
     if (!game) {
         window.location.href = 'index.html';
         return;
@@ -60,12 +71,126 @@ function loadGameDetails() {
     // Load betting markets
     loadGameLines(game);
 
-    // Load player props
-    allPlayerProps = getPlayerProps(currentGameId);
-    loadPlayerProps(allPlayerProps);
+    // Load player props from backend
+    await loadPlayerPropsFromBackend();
 
     // Load team props
     loadTeamProps(currentGameId);
+}
+
+// Convert backend game format to frontend format
+function convertBackendGameToFrontend(backendGame) {
+    return {
+        id: backendGame.game_id,
+        homeTeam: backendGame.home_team,
+        awayTeam: backendGame.away_team,
+        homeRecord: '8-2', // Would come from team stats
+        awayRecord: '9-1', // Would come from team stats
+        date: backendGame.game_date,
+        time: backendGame.game_time || '13:00',
+        status: backendGame.completed ? 'Final' : 'Upcoming',
+        spread: {
+            home: -3.5,
+            away: 3.5
+        },
+        moneyline: {
+            home: -180,
+            away: +150
+        },
+        total: {
+            over: 54.5,
+            under: 54.5
+        },
+        overOdds: -110,
+        underOdds: -110
+    };
+}
+
+// Load player props from backend API
+async function loadPlayerPropsFromBackend() {
+    const playerPropsBody = document.getElementById('playerPropsBody');
+    if (!playerPropsBody) return;
+
+    // Show loading state
+    playerPropsBody.innerHTML = `
+        <tr>
+            <td colspan="6" style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                Loading player props...
+            </td>
+        </tr>
+    `;
+
+    try {
+        // Get projections from backend
+        const response = await apiService.getGameProjections(currentGameId, {
+            limit: 50
+        });
+
+        if (!response.projections || response.projections.length === 0) {
+            throw new Error('No projections available');
+        }
+
+        // Convert backend projections to frontend prop format
+        allPlayerProps = response.projections.map(proj => convertProjectionToProp(proj));
+
+        // Load the props
+        loadPlayerProps(allPlayerProps);
+
+    } catch (error) {
+        console.error('Error loading props from backend:', error);
+
+        // Fallback to mock data
+        console.log('Falling back to mock data...');
+        allPlayerProps = getPlayerProps(currentGameId) || [];
+        loadPlayerProps(allPlayerProps);
+    }
+}
+
+// Convert backend projection to frontend prop format
+function convertProjectionToProp(projection) {
+    // Determine category from market
+    let category = 'all';
+    if (projection.market.includes('passing')) category = 'passing';
+    else if (projection.market.includes('rushing')) category = 'rushing';
+    else if (projection.market.includes('receiving') || projection.market.includes('rec')) category = 'receiving';
+    else if (projection.market.includes('defense') || projection.market.includes('tackle')) category = 'defensive';
+
+    // Map confidence to rating
+    const rating = mapConfidenceToRating(projection.confidence);
+    const ratingText = rating.charAt(0).toUpperCase() + rating.slice(1);
+
+    // Format prop type
+    const propType = formatMarketToPropType(projection.market);
+
+    // Calculate odds (simplified - would come from market odds if available)
+    const overOdds = -110;
+    const underOdds = -110;
+
+    return {
+        player: projection.player_name,
+        team: projection.team,
+        propType: propType,
+        category: category,
+        line: projection.mu.toFixed(1),
+        overOdds: overOdds,
+        underOdds: underOdds,
+        rating: rating,
+        ratingText: ratingText
+    };
+}
+
+function formatMarketToPropType(market) {
+    // Convert player_passing_yds to "Passing Yards"
+    const parts = market.replace('player_', '').split('_');
+    return parts.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
+}
+
+function mapConfidenceToRating(confidence) {
+    if (confidence >= 0.8) return 'excellent';
+    if (confidence >= 0.7) return 'good';
+    if (confidence >= 0.6) return 'moderate';
+    if (confidence >= 0.4) return 'poor';
+    return 'avoid';
 }
 
 function loadGameHeader(game) {
