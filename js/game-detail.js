@@ -65,6 +65,9 @@ async function loadGameDetails() {
     // Load game header
     loadGameHeader(game);
 
+    // Load related content
+    loadRelatedContent(game);
+
     // Load top props and parlays
     loadTopPropsAndParlays(game);
 
@@ -385,6 +388,76 @@ function formatGameDate(dateStr) {
     const date = new Date(dateStr);
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     return date.toLocaleDateString('en-US', options);
+}
+
+// Load Related Content (Articles & Videos)
+async function loadRelatedContent(game) {
+    const container = document.getElementById('relatedContent');
+    if (!container) return;
+
+    // Show loading state
+    container.innerHTML = `
+        <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading related content...</p>
+        </div>
+    `;
+
+    try {
+        // Fetch content from backend
+        const content = await apiService.getGameContent(currentGameId, {
+            limit: 8
+        });
+
+        if (!content || content.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <span class="empty-icon">📰</span>
+                    <p>No related content available</p>
+                </div>
+            `;
+            return;
+        }
+
+        // Render content
+        container.innerHTML = content.map(item => `
+            <a href="${item.url}" class="content-card" target="_blank" rel="noopener noreferrer">
+                <div class="content-thumbnail">${item.content_type === 'video' ? '🎥' : '📄'}</div>
+                <div class="content-info">
+                    <h4 class="content-title">${item.title}</h4>
+                    <div class="content-meta">
+                        <span class="content-source">${item.source}</span>
+                        <span class="content-time">${formatTimeAgo(item.published_at)}</span>
+                    </div>
+                </div>
+            </a>
+        `).join('');
+
+    } catch (error) {
+        console.error('Error loading related content:', error);
+        container.innerHTML = `
+            <div class="empty-state">
+                <span class="empty-icon">📰</span>
+                <p>Unable to load related content</p>
+                <small>Backend API unavailable</small>
+            </div>
+        `;
+    }
+}
+
+// Format time ago helper
+function formatTimeAgo(dateStr) {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffHours < 1) return 'Just now';
+    if (diffHours < 24) return `${diffHours} hours ago`;
+    if (diffDays === 1) return '1 day ago';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    return date.toLocaleDateString();
 }
 
 // Load Top Props & Suggested Parlays
