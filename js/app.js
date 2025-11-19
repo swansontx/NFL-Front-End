@@ -162,7 +162,7 @@ async function loadGames(dayOffset) {
         document.querySelectorAll('.game-card').forEach(card => {
             card.addEventListener('click', function() {
                 const gameId = this.getAttribute('data-game-id');
-                window.location.href = `game-detail.html?id=${gameId}`;
+                window.location.href = `game.html?id=${gameId}`;
             });
         });
 

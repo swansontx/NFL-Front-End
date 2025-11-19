@@ -5,8 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Game Details - NFL Betting</title>
     <link rel="stylesheet" href="css/styles.css">
+    <script>
+        // DEPRECATED: This file is deprecated. Redirecting to game.html
+        const urlParams = new URLSearchParams(window.location.search);
+        const gameId = urlParams.get('id');
+        if (gameId) {
+            window.location.replace(`game.html?id=${gameId}`);
+        } else {
+            window.location.replace('index.html');
+        }
+    </script>
 </head>
 <body>
+    <!-- DEPRECATED: This page has been replaced by game.html -->
+    <div style="text-align: center; padding: 4rem;">
+        <h2>Redirecting...</h2>
+        <p>This page has been moved. You will be redirected automatically.</p>
+        <p><a href="game.html">Click here if not redirected</a></p>
+    </div>
     <nav class="navbar">
         <div class="nav-container">
             <h1 class="logo">🏈 NFL Betting Hub</h1>
