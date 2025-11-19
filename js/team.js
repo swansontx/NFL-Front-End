@@ -24,6 +24,7 @@ async function loadTeamData() {
         loadTeamHeader(),
         loadTeamStats(),
         loadTeamNews(),
+        loadTeamInjuries(),
         loadTeamSchedule()
     ]);
 }
@@ -207,6 +208,65 @@ async function loadTeamNews() {
             <div class="empty-state">
                 <span class="empty-icon">📰</span>
                 <p>Unable to load news</p>
+            </div>
+        `;
+    }
+}
+
+// Load team injuries
+async function loadTeamInjuries() {
+    const container = document.getElementById('teamInjuries');
+    if (!container) return;
+
+    container.innerHTML = `<div class="loading-state"><div class="spinner"></div></div>`;
+
+    try {
+        const injuries = await apiService.getNews({
+            team: currentTeamId,
+            category: 'injury',
+            limit: 10
+        });
+
+        if (!injuries || injuries.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <span class="empty-icon">✅</span>
+                    <p>No injury reports</p>
+                    <small>Team is healthy</small>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = `
+            <div class="injuries-grid">
+                ${injuries.map(injury => `
+                    <div class="injury-item-card">
+                        <div class="injury-header">
+                            <div class="injury-player-info">
+                                <h4 class="injury-player-name">${injury.player_name || injury.title}</h4>
+                                <span class="injury-position">${injury.position || ''}</span>
+                            </div>
+                            <span class="injury-status ${getInjuryStatusClass(injury.status)}">${injury.status || 'Unknown'}</span>
+                        </div>
+                        <div class="injury-details">
+                            <p class="injury-description">${injury.description || injury.title}</p>
+                            ${injury.return_date ? `<p class="injury-return">Expected return: ${new Date(injury.return_date).toLocaleDateString()}</p>` : ''}
+                        </div>
+                        <div class="injury-footer">
+                            <span class="injury-updated">${formatTimeAgo(injury.published_at || injury.updated_at)}</span>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+
+    } catch (error) {
+        console.error('Error loading team injuries:', error);
+        container.innerHTML = `
+            <div class="empty-state">
+                <span class="empty-icon">🏥</span>
+                <p>Unable to load injury report</p>
             </div>
         `;
     }
@@ -457,6 +517,7 @@ function getTeamLogo(teamId) {
 }
 
 function formatTimeAgo(dateStr) {
+    if (!dateStr) return '';
     const date = new Date(dateStr);
     const now = new Date();
     const diffMs = now - date;
@@ -468,4 +529,14 @@ function formatTimeAgo(dateStr) {
     if (diffDays === 1) return '1 day ago';
     if (diffDays < 7) return `${diffDays} days ago`;
     return date.toLocaleDateString();
+}
+
+function getInjuryStatusClass(status) {
+    if (!status) return 'unknown';
+    const statusLower = status.toLowerCase();
+    if (statusLower.includes('out')) return 'out';
+    if (statusLower.includes('doubtful')) return 'doubtful';
+    if (statusLower.includes('questionable')) return 'questionable';
+    if (statusLower.includes('probable')) return 'probable';
+    return 'unknown';
 }

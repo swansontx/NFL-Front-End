@@ -2663,6 +2663,118 @@ body {
     margin: 0;
 }
 
+/* Team Injuries */
+.team-injuries-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.injuries-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--space-md);
+}
+
+.injury-item-card {
+    padding: var(--space-lg);
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-light);
+    transition: all var(--transition-base);
+}
+
+.injury-item-card:hover {
+    border-color: var(--accent-blue);
+    box-shadow: var(--shadow-md);
+}
+
+.injury-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--space-md);
+}
+
+.injury-player-info {
+    flex: 1;
+}
+
+.injury-player-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 var(--space-xs) 0;
+}
+
+.injury-position {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+}
+
+.injury-status {
+    padding: 0.25rem var(--space-sm);
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.injury-status.out {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.injury-status.doubtful {
+    background: #fed7aa;
+    color: #ea580c;
+}
+
+.injury-status.questionable {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.injury-status.probable {
+    background: #d1fae5;
+    color: #059669;
+}
+
+.injury-status.unknown {
+    background: var(--bg-tertiary);
+    color: var(--text-tertiary);
+}
+
+.injury-details {
+    margin-bottom: var(--space-md);
+}
+
+.injury-description {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin: 0 0 var(--space-sm) 0;
+}
+
+.injury-return {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    margin: 0;
+}
+
+.injury-footer {
+    padding-top: var(--space-sm);
+    border-top: 1px solid var(--border-light);
+}
+
+.injury-updated {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+}
+
 /* Team Schedule */
 .team-schedule {
     display: flex;
