@@ -321,6 +321,135 @@ function getTeamProps(gameId) {
     return MOCK_TEAM_PROPS[gameId] || [];
 }
 
+// Categorize bet by odds into risk buckets
+function categorizeBetRisk(odds) {
+    if (odds <= -110 && odds >= -200) {
+        return 'conservative';
+    } else if ((odds > -110 && odds <= 150) || (odds < -200 && odds >= -300)) {
+        return 'moderate';
+    } else {
+        return 'lotto';
+    }
+}
+
+// Get all available market lines across all games
+function getAllMarketLines() {
+    const allLines = [];
+
+    MOCK_GAMES.forEach(game => {
+        const gameLabel = `${game.awayTeam} @ ${game.homeTeam}`;
+
+        // Spread bets
+        allLines.push({
+            game: gameLabel,
+            gameId: game.id,
+            type: 'spread',
+            description: `${game.homeTeam} ${game.spread.home > 0 ? '+' : ''}${game.spread.home}`,
+            odds: -110,
+            category: categorizeBetRisk(-110)
+        });
+        allLines.push({
+            game: gameLabel,
+            gameId: game.id,
+            type: 'spread',
+            description: `${game.awayTeam} ${game.spread.away > 0 ? '+' : ''}${game.spread.away}`,
+            odds: -110,
+            category: categorizeBetRisk(-110)
+        });
+
+        // Moneyline bets
+        allLines.push({
+            game: gameLabel,
+            gameId: game.id,
+            type: 'moneyline',
+            description: `${game.homeTeam} ML`,
+            odds: game.moneyline.home,
+            category: categorizeBetRisk(game.moneyline.home)
+        });
+        allLines.push({
+            game: gameLabel,
+            gameId: game.id,
+            type: 'moneyline',
+            description: `${game.awayTeam} ML`,
+            odds: game.moneyline.away,
+            category: categorizeBetRisk(game.moneyline.away)
+        });
+
+        // Total bets
+        allLines.push({
+            game: gameLabel,
+            gameId: game.id,
+            type: 'total',
+            description: `Over ${game.total.over}`,
+            odds: game.overOdds,
+            category: categorizeBetRisk(game.overOdds)
+        });
+        allLines.push({
+            game: gameLabel,
+            gameId: game.id,
+            type: 'total',
+            description: `Under ${game.total.under}`,
+            odds: game.underOdds,
+            category: categorizeBetRisk(game.underOdds)
+        });
+
+        // Add player props if available
+        const props = MOCK_PLAYER_PROPS[game.id];
+        if (props) {
+            props.forEach(prop => {
+                allLines.push({
+                    game: gameLabel,
+                    gameId: game.id,
+                    type: 'player_prop',
+                    description: `${prop.player} Over ${prop.line} ${prop.propType}`,
+                    odds: prop.overOdds,
+                    category: categorizeBetRisk(prop.overOdds)
+                });
+                allLines.push({
+                    game: gameLabel,
+                    gameId: game.id,
+                    type: 'player_prop',
+                    description: `${prop.player} Under ${prop.line} ${prop.propType}`,
+                    odds: prop.underOdds,
+                    category: categorizeBetRisk(prop.underOdds)
+                });
+            });
+        }
+    });
+
+    return allLines;
+}
+
+// Get market lines filtered by category
+function getMarketLinesByCategory(category) {
+    const allLines = getAllMarketLines();
+    return allLines.filter(line => line.category === category);
+}
+
+// Get market lines for specific games
+function getMarketLinesForGames(gameIds, category = null) {
+    const allLines = getAllMarketLines();
+    let filtered = allLines.filter(line => gameIds.includes(line.gameId));
+
+    if (category) {
+        filtered = filtered.filter(line => line.category === category);
+    }
+
+    return filtered;
+}
+
+// Get market lines for same game parlay
+function getSameGameMarketLines(gameId, category = null) {
+    const allLines = getAllMarketLines();
+    let filtered = allLines.filter(line => line.gameId === gameId);
+
+    if (category) {
+        filtered = filtered.filter(line => line.category === category);
+    }
+
+    return filtered;
+}
+
 // Export for use in other files
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
@@ -332,6 +461,11 @@ if (typeof module !== 'undefined' && module.exports) {
         getGamesByDay,
         getGameById,
         getPlayerProps,
-        getTeamProps
+        getTeamProps,
+        categorizeBetRisk,
+        getAllMarketLines,
+        getMarketLinesByCategory,
+        getMarketLinesForGames,
+        getSameGameMarketLines
     };
 }

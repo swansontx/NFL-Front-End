@@ -126,110 +126,94 @@ function generateParlays() {
         return;
     }
 
-    // Generate mock parlays based on settings
-    const parlays = createMockParlays();
+    // Generate parlays based on actual market lines
+    const parlays = createParlaysFromMarketLines();
     displayParlays(parlays);
 }
 
-function createMockParlays() {
-    // This is where backend logic would generate optimal parlays
-    // For now, create mock data based on selected parameters
-
+function createParlaysFromMarketLines() {
     const parlays = [];
-    const numParlays = Math.min(5, selectedGames.length * 2); // Generate up to 5 parlays
+    const numParlays = 5; // Generate 5 different parlay options
 
+    // Get available market lines based on settings
+    let availableLines;
+    if (sameGameParlay) {
+        availableLines = getSameGameMarketLines(selectedGames[0], selectedCategory);
+    } else {
+        availableLines = getMarketLinesForGames(selectedGames, selectedCategory);
+    }
+
+    // Check if we have enough lines to create parlays
+    if (availableLines.length < numLegs) {
+        showEmptyState(`Not enough ${selectedCategory} bets available for ${numLegs}-leg parlay. Try selecting more games or a different category.`);
+        return [];
+    }
+
+    // Generate multiple parlay variations
     for (let i = 0; i < numParlays; i++) {
-        const parlay = generateSingleParlay(i);
-        parlays.push(parlay);
+        const parlay = buildParlay(availableLines, i);
+        if (parlay) {
+            parlays.push(parlay);
+        }
     }
 
     return parlays;
 }
 
-function generateSingleParlay(index) {
-    // Get odds ranges based on category
-    let oddsRange;
-    switch(selectedCategory) {
-        case 'conservative':
-            oddsRange = { min: -200, max: -110 };
-            break;
-        case 'lotto':
-            oddsRange = { min: 150, max: 500 };
-            break;
-        default: // moderate
-            oddsRange = { min: -110, max: 150 };
-    }
+function buildParlay(availableLines, seed) {
+    // Shuffle lines to create variation (using seed for different combinations)
+    const shuffled = [...availableLines].sort(() => 0.5 - Math.random() * (seed + 1));
 
-    // Generate random legs
     const legs = [];
-    const actualNumLegs = sameGameParlay ? numLegs : Math.min(numLegs, selectedGames.length);
+    const usedGames = new Set();
 
-    for (let i = 0; i < actualNumLegs; i++) {
-        const gameId = sameGameParlay ? selectedGames[0] : selectedGames[i % selectedGames.length];
-        const game = getGameById(gameId);
+    // For multi-game parlays, use one bet per game
+    // For same-game parlays, can use multiple bets from same game
+    for (const line of shuffled) {
+        if (legs.length >= numLegs) break;
 
-        const betTypes = ['spread', 'total', 'moneyline', 'player_prop'];
-        const betType = betTypes[Math.floor(Math.random() * betTypes.length)];
-
-        let leg;
-        switch(betType) {
-            case 'spread':
-                leg = {
-                    game: `${game.awayTeam} @ ${game.homeTeam}`,
-                    bet: `${game.homeTeam} ${game.spread.home > 0 ? '+' : ''}${game.spread.home}`,
-                    odds: -110
-                };
-                break;
-            case 'total':
-                leg = {
-                    game: `${game.awayTeam} @ ${game.homeTeam}`,
-                    bet: `Over ${game.total.over}`,
-                    odds: game.overOdds
-                };
-                break;
-            case 'moneyline':
-                leg = {
-                    game: `${game.awayTeam} @ ${game.homeTeam}`,
-                    bet: `${game.homeTeam} ML`,
-                    odds: game.moneyline.home
-                };
-                break;
-            case 'player_prop':
-                const props = getPlayerProps(gameId);
-                if (props.length > 0) {
-                    const prop = props[Math.floor(Math.random() * props.length)];
-                    leg = {
-                        game: `${game.awayTeam} @ ${game.homeTeam}`,
-                        bet: `${prop.player} Over ${prop.line} ${prop.propType}`,
-                        odds: prop.overOdds
-                    };
-                } else {
-                    leg = {
-                        game: `${game.awayTeam} @ ${game.homeTeam}`,
-                        bet: `${game.homeTeam} ${game.spread.home > 0 ? '+' : ''}${game.spread.home}`,
-                        odds: -110
-                    };
-                }
-                break;
+        // For multi-game parlays, don't use same game twice
+        if (!sameGameParlay && usedGames.has(line.gameId)) {
+            continue;
         }
 
-        legs.push(leg);
+        legs.push({
+            game: line.game,
+            bet: line.description,
+            odds: line.odds,
+            type: line.type
+        });
+
+        usedGames.add(line.gameId);
+    }
+
+    // Make sure we have enough legs
+    if (legs.length < numLegs) {
+        return null;
     }
 
     // Calculate parlay odds
     const parlayOdds = calculateParlayOdds(legs.map(l => l.odds));
 
-    // Calculate confidence based on category and odds
-    let confidence = 'moderate';
-    if (selectedCategory === 'conservative') {
-        confidence = ['excellent', 'good'][Math.floor(Math.random() * 2)];
-    } else if (selectedCategory === 'lotto') {
-        confidence = ['moderate', 'good'][Math.floor(Math.random() * 2)];
+    // Determine confidence based on category
+    let confidence;
+    switch(selectedCategory) {
+        case 'conservative':
+            confidence = ['excellent', 'good'][Math.floor(Math.random() * 2)];
+            break;
+        case 'lotto':
+            confidence = ['moderate', 'good'][Math.floor(Math.random() * 2)];
+            break;
+        default:
+            confidence = ['good', 'moderate'][Math.floor(Math.random() * 2)];
     }
 
+    const parlayType = sameGameParlay ? 'Same Game' : 'Multi-Game';
+    const categoryName = selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1);
+
     return {
-        id: index + 1,
-        title: `${selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)} ${actualNumLegs}-Leg Parlay`,
+        id: seed + 1,
+        title: `${categoryName} ${numLegs}-Leg ${parlayType} Parlay`,
         legs: legs,
         odds: parlayOdds,
         confidence: confidence,
