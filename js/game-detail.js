@@ -65,6 +65,15 @@ async function loadGameDetails() {
     // Load game header
     loadGameHeader(game);
 
+    // Load weather conditions
+    loadWeather(game);
+
+    // Load injury report
+    loadInjuryReport(game);
+
+    // Load game insights
+    loadGameInsights(game);
+
     // Load related content
     loadRelatedContent(game);
 
@@ -388,6 +397,262 @@ function formatGameDate(dateStr) {
     const date = new Date(dateStr);
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     return date.toLocaleDateString('en-US', options);
+}
+
+// Load Weather Conditions
+async function loadWeather(game) {
+    const container = document.getElementById('weatherWidget');
+    if (!container) return;
+
+    // Show loading state
+    container.innerHTML = `
+        <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading weather...</p>
+        </div>
+    `;
+
+    try {
+        const weather = await apiService.getGameWeather(currentGameId);
+
+        container.innerHTML = `
+            <div class="weather-card ${getWeatherImpact(weather)}">
+                <div class="weather-main">
+                    <div class="weather-icon">${getWeatherIcon(weather.condition)}</div>
+                    <div class="weather-temp">
+                        <span class="temp-value">${weather.temperature}°${weather.temp_unit}</span>
+                        <span class="weather-condition">${weather.condition}</span>
+                    </div>
+                </div>
+                <div class="weather-details">
+                    <div class="weather-detail">
+                        <span class="detail-label">Wind</span>
+                        <span class="detail-value ${weather.wind_speed > 15 ? 'warning' : ''}">${weather.wind_speed} ${weather.wind_unit}</span>
+                    </div>
+                    <div class="weather-detail">
+                        <span class="detail-label">Humidity</span>
+                        <span class="detail-value">${weather.humidity}%</span>
+                    </div>
+                    <div class="weather-detail">
+                        <span class="detail-label">Precipitation</span>
+                        <span class="detail-value">${weather.precipitation_chance}%</span>
+                    </div>
+                    ${weather.is_dome ? '<div class="weather-dome">🏟️ Indoor Stadium</div>' : ''}
+                </div>
+                ${getWeatherImpactMessage(weather)}
+            </div>
+        `;
+
+    } catch (error) {
+        console.error('Error loading weather:', error);
+        container.innerHTML = `
+            <div class="empty-state">
+                <span class="empty-icon">🌤️</span>
+                <p>Weather data unavailable</p>
+            </div>
+        `;
+    }
+}
+
+function getWeatherIcon(condition) {
+    const icons = {
+        'Clear': '☀️',
+        'Clouds': '☁️',
+        'Rain': '🌧️',
+        'Snow': '❄️',
+        'Fog': '🌫️'
+    };
+    return icons[condition] || '🌤️';
+}
+
+function getWeatherImpact(weather) {
+    if (weather.is_dome) return 'impact-none';
+    if (weather.wind_speed > 20 || weather.condition === 'Snow' || weather.condition === 'Rain') return 'impact-high';
+    if (weather.wind_speed > 15 || weather.precipitation_chance > 50) return 'impact-medium';
+    return 'impact-low';
+}
+
+function getWeatherImpactMessage(weather) {
+    if (weather.is_dome) {
+        return '<div class="weather-impact impact-none">✅ Indoor game - No weather impact</div>';
+    }
+
+    if (weather.wind_speed > 20) {
+        return '<div class="weather-impact impact-high">⚠️ High winds - Significant impact on passing game</div>';
+    }
+
+    if (weather.condition === 'Rain' || weather.condition === 'Snow') {
+        return '<div class="weather-impact impact-high">⚠️ Adverse conditions - Favor rushing props</div>';
+    }
+
+    if (weather.wind_speed > 15) {
+        return '<div class="weather-impact impact-medium">⚠️ Moderate winds - May affect deep passes</div>';
+    }
+
+    return '<div class="weather-impact impact-low">✅ Good conditions for all prop types</div>';
+}
+
+// Load Injury Report
+async function loadInjuryReport(game) {
+    const container = document.getElementById('injuryRoster');
+    if (!container) return;
+
+    // Show loading state
+    container.innerHTML = `
+        <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading injury report...</p>
+        </div>
+    `;
+
+    try {
+        const injuries = await apiService.getGameInjuries(currentGameId);
+
+        if (injuries.away_injuries.length === 0 && injuries.home_injuries.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <span class="empty-icon">✅</span>
+                    <p>No injuries reported for this game</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = `
+            <div class="injury-column">
+                <h4>${injuries.away_team} Injuries</h4>
+                ${injuries.away_injuries.length > 0 ? injuries.away_injuries.map(injury => createInjuryCard(injury)).join('') : '<p class="no-injuries">No injuries reported</p>'}
+            </div>
+            <div class="injury-column">
+                <h4>${injuries.home_team} Injuries</h4>
+                ${injuries.home_injuries.length > 0 ? injuries.home_injuries.map(injury => createInjuryCard(injury)).join('') : '<p class="no-injuries">No injuries reported</p>'}
+            </div>
+        `;
+
+    } catch (error) {
+        console.error('Error loading injuries:', error);
+        container.innerHTML = `
+            <div class="empty-state">
+                <span class="empty-icon">🏥</span>
+                <p>Injury data unavailable</p>
+                <small>Backend API unavailable</small>
+            </div>
+        `;
+    }
+}
+
+function createInjuryCard(injury) {
+    const statusClass = injury.injury_status.toLowerCase().replace(' ', '-');
+    const impactLevel = getInjuryImpact(injury.position, injury.injury_status);
+
+    return `
+        <div class="injury-card impact-${impactLevel}">
+            <div class="injury-header">
+                <span class="injury-player">${injury.player_name}</span>
+                <span class="injury-status status-${statusClass}">${injury.injury_status}</span>
+            </div>
+            <div class="injury-details">
+                <span class="injury-position">${injury.position}</span>
+                ${injury.injury_body_part ? `<span class="injury-type">${injury.injury_body_part}</span>` : ''}
+            </div>
+            ${injury.injury_notes ? `<p class="injury-description">${injury.injury_notes}</p>` : ''}
+        </div>
+    `;
+}
+
+function getInjuryImpact(position, status) {
+    // QB, RB, WR are high impact positions
+    const highImpactPositions = ['QB', 'RB', 'WR', 'TE'];
+    const isHighImpactPosition = highImpactPositions.includes(position);
+
+    if (status === 'Out' || status === 'IR') {
+        return isHighImpactPosition ? 'high' : 'medium';
+    }
+
+    if (status === 'Doubtful') {
+        return isHighImpactPosition ? 'medium' : 'low';
+    }
+
+    return 'low';
+}
+
+// Load Game Insights
+async function loadGameInsights(game) {
+    const container = document.getElementById('matchupInsights');
+    if (!container) return;
+
+    // Show loading state
+    container.innerHTML = `
+        <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading insights...</p>
+        </div>
+    `;
+
+    try {
+        const insights = await apiService.getGameInsights(currentGameId);
+
+        if (!insights || insights.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <span class="empty-icon">⚡</span>
+                    <p>No insights available</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = insights.map(insight => `
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-icon">${getInsightIcon(insight.insight_type)}</span>
+                    <h4>${insight.title}</h4>
+                </div>
+                <p class="insight-description">${insight.description}</p>
+                <div class="insight-confidence">
+                    <span class="confidence-label">Confidence:</span>
+                    <span class="confidence-value">${(insight.confidence * 100).toFixed(0)}%</span>
+                </div>
+                ${insight.supporting_data ? createSupportingData(insight.supporting_data) : ''}
+            </div>
+        `).join('');
+
+    } catch (error) {
+        console.error('Error loading insights:', error);
+        container.innerHTML = `
+            <div class="empty-state">
+                <span class="empty-icon">⚡</span>
+                <p>Insights unavailable</p>
+                <small>Backend API unavailable</small>
+            </div>
+        `;
+    }
+}
+
+function getInsightIcon(type) {
+    const icons = {
+        'trend': '📈',
+        'stat': '📊',
+        'matchup': '⚔️',
+        'weather': '🌤️',
+        'injury': '🏥'
+    };
+    return icons[type] || '💡';
+}
+
+function createSupportingData(data) {
+    if (!data || typeof data !== 'object') return '';
+
+    const stats = Object.entries(data)
+        .filter(([key, value]) => typeof value === 'number' || typeof value === 'string')
+        .slice(0, 3)
+        .map(([key, value]) => {
+            const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            return `<span class="insight-stat">${label}: ${value}</span>`;
+        })
+        .join('');
+
+    return stats ? `<div class="insight-stats">${stats}</div>` : '';
 }
 
 // Load Related Content (Articles & Videos)
