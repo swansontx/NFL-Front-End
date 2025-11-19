@@ -342,6 +342,125 @@ class NFLAPIService {
         return await this._fetch(`/api/v1/recommendations/player/${playerId}?${params.toString()}`);
     }
 
+    // ==================== NEWS & INJURIES ====================
+
+    /**
+     * Get news and injury updates
+     * GET /api/v1/news
+     *
+     * @param {Object} options - Query parameters
+     * @param {number} options.limit - Max items (default 20)
+     * @param {string} options.category - Filter by category (injury|news|analysis)
+     * @param {string} options.team - Filter by team abbreviation
+     */
+    async getNews(options = {}) {
+        if (!this.useBackend) {
+            return [];
+        }
+
+        const params = new URLSearchParams();
+        if (options.limit) params.append('limit', options.limit);
+        if (options.category) params.append('category', options.category);
+        if (options.team) params.append('team', options.team);
+
+        const query = params.toString() ? `?${params.toString()}` : '';
+        return await this._fetch(`/api/v1/news${query}`);
+    }
+
+    /**
+     * Get injury report for a specific game
+     * GET /api/v1/games/{game_id}/injuries
+     *
+     * @param {string} gameId - Game identifier
+     */
+    async getGameInjuries(gameId) {
+        if (!this.useBackend) {
+            return {
+                game_id: gameId,
+                away_team: '',
+                home_team: '',
+                away_injuries: [],
+                home_injuries: [],
+                last_updated: new Date().toISOString()
+            };
+        }
+
+        return await this._fetch(`/api/v1/games/${gameId}/injuries`);
+    }
+
+    /**
+     * Get weather data for a specific game
+     * GET /api/v1/games/{game_id}/weather
+     *
+     * @param {string} gameId - Game identifier
+     */
+    async getGameWeather(gameId) {
+        if (!this.useBackend) {
+            return {
+                temperature: 65,
+                temp_unit: 'F',
+                condition: 'Clear',
+                wind_speed: 5,
+                wind_unit: 'mph',
+                humidity: 50,
+                precipitation_chance: 0,
+                is_dome: false
+            };
+        }
+
+        return await this._fetch(`/api/v1/games/${gameId}/weather`);
+    }
+
+    /**
+     * Get game insights and matchup analysis
+     * GET /api/v1/games/{game_id}/insights
+     *
+     * @param {string} gameId - Game identifier
+     */
+    async getGameInsights(gameId) {
+        if (!this.useBackend) {
+            return [];
+        }
+
+        return await this._fetch(`/api/v1/games/${gameId}/insights`);
+    }
+
+    /**
+     * Get game narratives
+     * GET /api/v1/games/{game_id}/narrative
+     *
+     * @param {string} gameId - Game identifier
+     */
+    async getGameNarrative(gameId) {
+        if (!this.useBackend) {
+            return [];
+        }
+
+        return await this._fetch(`/api/v1/games/${gameId}/narrative`);
+    }
+
+    /**
+     * Get related content (articles, videos)
+     * GET /api/v1/games/{game_id}/content
+     *
+     * @param {string} gameId - Game identifier
+     * @param {Object} options - Query parameters
+     * @param {string} options.content_type - Filter by type (article|video|podcast)
+     * @param {number} options.limit - Max items (default 10)
+     */
+    async getGameContent(gameId, options = {}) {
+        if (!this.useBackend) {
+            return [];
+        }
+
+        const params = new URLSearchParams();
+        if (options.content_type) params.append('content_type', options.content_type);
+        if (options.limit) params.append('limit', options.limit);
+
+        const query = params.toString() ? `?${params.toString()}` : '';
+        return await this._fetch(`/api/v1/games/${gameId}/content${query}`);
+    }
+
     // ==================== BACKTEST (Analytics/Trends) ====================
 
     /**

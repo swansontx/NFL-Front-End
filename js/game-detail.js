@@ -448,63 +448,22 @@ async function loadTopPropsAndParlays(game) {
         }
 
     } catch (error) {
-        console.log('Using mock data for top props and parlays');
+        console.error('Error loading props and parlays:', error);
 
-        // Fallback to mock data
+        // Show helpful empty state
         topPropsContainer.innerHTML = `
-            <div class="top-prop-item">
-                <div class="top-prop-rank">#1</div>
-                <div class="top-prop-details">
-                    <div class="top-prop-player">Star QB</div>
-                    <div class="top-prop-market">Over 285.5 Passing Yards</div>
-                    <div class="top-prop-odds">-115</div>
-                </div>
-                <div class="rating-badge excellent">EXCELLENT</div>
-            </div>
-            <div class="top-prop-item">
-                <div class="top-prop-rank">#2</div>
-                <div class="top-prop-details">
-                    <div class="top-prop-player">Elite WR</div>
-                    <div class="top-prop-market">Over 6.5 Receptions</div>
-                    <div class="top-prop-odds">-110</div>
-                </div>
-                <div class="rating-badge good">GOOD</div>
-            </div>
-            <div class="top-prop-item">
-                <div class="top-prop-rank">#3</div>
-                <div class="top-prop-details">
-                    <div class="top-prop-player">RB1</div>
-                    <div class="top-prop-market">Over 75.5 Rushing Yards</div>
-                    <div class="top-prop-odds">-120</div>
-                </div>
-                <div class="rating-badge good">GOOD</div>
+            <div class="empty-state">
+                <span class="empty-icon">📊</span>
+                <p>Unable to load top props</p>
+                <small>Backend API unavailable. Please ensure the server is running at http://localhost:8000</small>
             </div>
         `;
 
         parlaysContainer.innerHTML = `
-            <div class="parlay-card">
-                <div class="parlay-header">
-                    <span class="parlay-name">Offensive Explosion</span>
-                    <span class="parlay-odds">+285</span>
-                </div>
-                <div class="parlay-legs">
-                    <div class="parlay-leg">QB Over 2.5 Pass TDs</div>
-                    <div class="parlay-leg">WR Over 85.5 Rec Yards</div>
-                    <div class="parlay-leg">Game Total Over 49.5</div>
-                </div>
-                <div class="parlay-confidence">Confidence: 68%</div>
-            </div>
-            <div class="parlay-card">
-                <div class="parlay-header">
-                    <span class="parlay-name">Star Power</span>
-                    <span class="parlay-odds">+310</span>
-                </div>
-                <div class="parlay-legs">
-                    <div class="parlay-leg">RB Anytime TD</div>
-                    <div class="parlay-leg">QB Over 285.5 Pass Yds</div>
-                    <div class="parlay-leg">WR Over 6.5 Receptions</div>
-                </div>
-                <div class="parlay-confidence">Confidence: 62%</div>
+            <div class="empty-state">
+                <span class="empty-icon">🎲</span>
+                <p>Unable to load parlays</p>
+                <small>Backend API unavailable.</small>
             </div>
         `;
     }
