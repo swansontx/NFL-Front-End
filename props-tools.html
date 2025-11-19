@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Props Tools - NFL Betting Hub</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <h1 class="logo">🏈 NFL Betting Hub</h1>
+            <ul class="nav-links">
+                <li><a href="index.html">Schedule</a></li>
+                <li><a href="teams.html">Teams</a></li>
+                <li><a href="#best-bets">Best Bets</a></li>
+                <li><a href="#best-props">Best Props</a></li>
+                <li><a href="parlay-generator.html">Parlays</a></li>
+                <li><a href="props-tools.html" class="active">Props Tools</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <h1>🔧 Props Analysis Tools</h1>
+            <p class="page-subtitle">Advanced tools for analyzing prop bet value and comparing multiple props</p>
+        </div>
+
+        <!-- Prop Value Analyzer -->
+        <section class="tool-section">
+            <div class="tool-header">
+                <h2>📊 Prop Value Analyzer</h2>
+                <p>Calculate the edge on any prop bet by comparing our model's probability to the sportsbook's implied odds</p>
+            </div>
+
+            <div class="tool-card">
+                <form id="valueAnalyzerForm" class="props-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="playerId">Player ID</label>
+                            <input type="text" id="playerId" placeholder="e.g., mahomes_patrick" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="market">Market</label>
+                            <select id="market" required>
+                                <option value="">Select market...</option>
+                                <option value="passing_yds">Passing Yards</option>
+                                <option value="passing_tds">Passing TDs</option>
+                                <option value="rushing_yds">Rushing Yards</option>
+                                <option value="rushing_tds">Rushing TDs</option>
+                                <option value="receiving_yds">Receiving Yards</option>
+                                <option value="receiving_tds">Receiving TDs</option>
+                                <option value="receptions">Receptions</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="line">Line</label>
+                            <input type="number" id="line" step="0.5" placeholder="e.g., 287.5" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="odds">Odds</label>
+                            <input type="number" id="odds" placeholder="e.g., -110" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary">Analyze Value</button>
+                </form>
+
+                <div id="valueResults" class="results-container" style="display: none;">
+                    <!-- Results populated by JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Props Comparison Tool -->
+        <section class="tool-section">
+            <div class="tool-header">
+                <h2>⚖️ Props Comparison</h2>
+                <p>Compare multiple props side-by-side to find the best value</p>
+            </div>
+
+            <div class="tool-card">
+                <div id="comparePropsContainer">
+                    <div class="compare-prop-input" data-index="0">
+                        <h4>Prop #1</h4>
+                        <div class="form-grid">
+                            <input type="text" class="compare-player" placeholder="Player ID" required>
+                            <select class="compare-market" required>
+                                <option value="">Market...</option>
+                                <option value="passing_yds">Passing Yards</option>
+                                <option value="rushing_yds">Rushing Yards</option>
+                                <option value="receiving_yds">Receiving Yards</option>
+                            </select>
+                            <input type="number" class="compare-line" placeholder="Line" step="0.5" required>
+                            <input type="number" class="compare-odds" placeholder="Odds" required>
+                        </div>
+                    </div>
+
+                    <div class="compare-prop-input" data-index="1">
+                        <h4>Prop #2</h4>
+                        <div class="form-grid">
+                            <input type="text" class="compare-player" placeholder="Player ID" required>
+                            <select class="compare-market" required>
+                                <option value="">Market...</option>
+                                <option value="passing_yds">Passing Yards</option>
+                                <option value="rushing_yds">Rushing Yards</option>
+                                <option value="receiving_yds">Receiving Yards</option>
+                            </select>
+                            <input type="number" class="compare-line" placeholder="Line" step="0.5" required>
+                            <input type="number" class="compare-odds" placeholder="Odds" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tool-actions">
+                    <button id="addCompareBtn" class="btn-secondary">+ Add Another Prop</button>
+                    <button id="compareBtn" class="btn-primary">Compare Props</button>
+                </div>
+
+                <div id="compareResults" class="results-container" style="display: none;">
+                    <!-- Results populated by JavaScript -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Tips -->
+        <section class="tips-section">
+            <h3>💡 How to Use These Tools</h3>
+            <div class="tips-grid">
+                <div class="tip-card">
+                    <h4>Finding Player IDs</h4>
+                    <p>Player IDs are typically lowercase with underscores. Examples:</p>
+                    <ul>
+                        <li>Patrick Mahomes → <code>mahomes_patrick</code></li>
+                        <li>Josh Allen → <code>allen_josh</code></li>
+                        <li>Travis Kelce → <code>kelce_travis</code></li>
+                    </ul>
+                </div>
+
+                <div class="tip-card">
+                    <h4>Understanding Edge</h4>
+                    <p>Edge represents your expected advantage:</p>
+                    <ul>
+                        <li><strong>Positive edge</strong>: Model thinks bet has value</li>
+                        <li><strong>>5% edge</strong>: Strong betting opportunity</li>
+                        <li><strong>>10% edge</strong>: Excellent value</li>
+                    </ul>
+                </div>
+
+                <div class="tip-card">
+                    <h4>Kelly Criterion</h4>
+                    <p>Suggested bet size as % of bankroll:</p>
+                    <ul>
+                        <li>Based on edge and confidence</li>
+                        <li>Conservative: Use 0.25-0.5x Kelly</li>
+                        <li>Never bet more than Kelly suggests</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/api-service.js"></script>
+    <script src="js/props-tools.js"></script>
+</body>
+</html>

@@ -7,8 +7,10 @@ let currentSeason = 2024;
 // Initialize the app when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     initializeDayTabs();
+    loadNewsFeed();
     loadBestBets();
     loadBestProps();
+    loadTrendingProps();
     loadProjections();
     loadGames(currentDay);
     setupEventListeners();
@@ -74,6 +76,118 @@ function navigateWeek(direction) {
     loadGames(0); // Reload current day's games for new week
 }
 
+// Load news feed
+async function loadNewsFeed() {
+    const newsFeed = document.getElementById('newsFeed');
+    if (!newsFeed) return;
+
+    try {
+        const news = await apiService.getNews({ limit: 10 });
+
+        if (!news || news.length === 0) {
+            // Keep the mock data if no real news available
+            return;
+        }
+
+        newsFeed.innerHTML = news.map(item => `
+            <div class="news-item">
+                <span class="news-tag ${getCategoryClass(item.category)}">${item.category || 'News'}</span>
+                <p><strong>${item.title || item.player_name || 'Update'}</strong>${item.description ? ` - ${item.description}` : ''}</p>
+                <span class="news-time">${formatTimeAgo(item.published_at || item.created_at)}</span>
+            </div>
+        `).join('');
+
+    } catch (error) {
+        console.error('Error loading news feed:', error);
+        // Keep mock data on error
+    }
+}
+
+function getCategoryClass(category) {
+    if (!category) return 'news';
+    const cat = category.toLowerCase();
+    if (cat.includes('injury')) return 'injury';
+    if (cat.includes('weather')) return 'weather';
+    if (cat.includes('lineup')) return 'lineup';
+    return 'news';
+}
+
+function formatTimeAgo(dateStr) {
+    if (!dateStr) return 'Recently';
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffHours < 1) return 'Just now';
+    if (diffHours < 24) return `${diffHours} hours ago`;
+    if (diffDays === 1) return '1 day ago';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    return date.toLocaleDateString();
+}
+
+// Load trending props
+async function loadTrendingProps() {
+    const container = document.getElementById('trendingPropsContainer');
+    if (!container) return;
+
+    container.innerHTML = '<div class="loading-state"><div class="spinner"></div></div>';
+
+    try {
+        const trending = await apiService.getPropsTrending({ week: currentWeek, limit: 10 });
+
+        if (!trending || !trending.trending_props || trending.trending_props.length === 0) {
+            container.innerHTML = `<p class="empty-message">No trending props available for this week</p>`;
+            return;
+        }
+
+        container.innerHTML = `
+            <div class="trending-props-grid">
+                ${trending.trending_props.map(prop => `
+                    <div class="trending-prop-card">
+                        <div class="trending-prop-header">
+                            <div class="prop-player-info">
+                                <span class="player-name">${prop.player_name || 'Unknown'}</span>
+                                <span class="player-team">${prop.team || ''} • ${prop.position || ''}</span>
+                            </div>
+                            <div class="trending-indicator ${prop.direction === 'up' ? 'trending-up' : 'trending-down'}">
+                                ${prop.direction === 'up' ? '⬆️' : '⬇️'}
+                                ${prop.movement ? Math.abs(prop.movement).toFixed(1) : '0'}
+                            </div>
+                        </div>
+                        <div class="trending-prop-details">
+                            <div class="prop-market-name">${formatMarketName(prop.market || prop.prop_type)}</div>
+                            <div class="prop-lines">
+                                <span class="old-line">Was: ${prop.opening_line || prop.previous_line || 'N/A'}</span>
+                                <span class="arrow">→</span>
+                                <span class="new-line">Now: ${prop.current_line || 'N/A'}</span>
+                            </div>
+                        </div>
+                        ${prop.movement_percentage ? `
+                            <div class="movement-badge">
+                                ${(prop.movement_percentage * 100).toFixed(1)}% movement
+                            </div>
+                        ` : ''}
+                    </div>
+                `).join('')}
+            </div>
+        `;
+
+    } catch (error) {
+        console.error('Error loading trending props:', error);
+        container.innerHTML = `<p class="empty-message">Unable to load trending props</p>`;
+    }
+}
+
+function formatMarketName(market) {
+    if (!market) return 'Unknown';
+    return market
+        .replace('player_', '')
+        .replace(/_/g, ' ')
+        .replace(/\b\w/g, l => l.toUpperCase());
+}
+
 // Load games from backend API
 async function loadGames(dayOffset) {
     const gamesGrid = document.getElementById('gamesGrid');
@@ -110,7 +224,7 @@ async function loadGames(dayOffset) {
         document.querySelectorAll('.game-card').forEach(card => {
             card.addEventListener('click', function() {
                 const gameId = this.getAttribute('data-game-id');
-                window.location.href = `game-detail.html?id=${gameId}`;
+                window.location.href = `game.html?id=${gameId}`;
             });
         });
 

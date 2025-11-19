@@ -323,9 +323,9 @@ function createGameRow(game) {
             <div class="game-result ${won ? 'win' : 'loss'}">
                 <span class="result-label">${won ? 'W' : 'L'}</span>
                 <span class="game-score">${teamScore}-${oppScore}</span>
-                <button class="box-score-btn" onclick="showBoxScore('${game.game_id}')">
-                    Box Score
-                </button>
+                <a href="game.html?id=${game.game_id}" class="box-score-btn">
+                    View Game
+                </a>
             </div>
         `;
     } else {
@@ -333,6 +333,9 @@ function createGameRow(game) {
             <div class="game-upcoming">
                 <span class="game-time">${game.game_time || 'TBD'}</span>
                 ${game.spread ? `<span class="game-spread">${game.spread > 0 ? '+' : ''}${game.spread}</span>` : ''}
+                <a href="game.html?id=${game.game_id}" class="game-preview-btn">
+                    Preview
+                </a>
             </div>
         `;
     }
