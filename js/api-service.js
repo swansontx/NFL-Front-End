@@ -143,11 +143,28 @@ class NFLAPIService {
         return await this._fetch(`/api/v1/games/${gameId}`);
     }
 
-    // ==================== PROJECTIONS ====================
+    // ==================== PROPS & PROJECTIONS ====================
+
+    /**
+     * Get prop sheet for a specific game (all betting props)
+     * GET /api/v1/games/{game_id}/prop-sheet
+     *
+     * @param {string} gameId - Game identifier
+     */
+    async getGamePropSheet(gameId) {
+        if (!this.useBackend) {
+            return {
+                game_id: gameId,
+                props: []
+            };
+        }
+
+        return await this._fetch(`/api/v1/games/${gameId}/prop-sheet`);
+    }
 
     /**
      * Get projections for a specific game
-     * GET /projections/games/{game_id}
+     * GET /api/v1/games/{game_id}/projections
      *
      * @param {string} gameId - Game identifier
      * @param {Object} filters - Optional filters
@@ -178,7 +195,7 @@ class NFLAPIService {
         if (filters.limit) params.append('limit', filters.limit);
 
         const query = params.toString() ? `?${params.toString()}` : '';
-        return await this._fetch(`/projections/games/${gameId}${query}`);
+        return await this._fetch(`/api/v1/games/${gameId}/projections${query}`);
     }
 
     /**
@@ -211,7 +228,68 @@ class NFLAPIService {
         if (filters.limit) params.append('limit', filters.limit);
 
         const query = params.toString() ? `?${params.toString()}` : '';
-        return await this._fetch(`/projections/players/${playerId}${query}`);
+        return await this._fetch(`/api/v1/players/${playerId}/projections${query}`);
+    }
+
+    /**
+     * Analyze prop value (edge analysis)
+     * GET /api/v1/props/value
+     *
+     * @param {Object} options - Prop details
+     * @param {string} options.player_id - Player identifier
+     * @param {string} options.market - Market type (passing_yds, rushing_yds, etc.)
+     * @param {number} options.line - Sportsbook line
+     * @param {number} options.odds - Sportsbook odds (e.g., -110)
+     */
+    async getPropValue(options) {
+        if (!this.useBackend) {
+            return {
+                player_id: options.player_id,
+                market: options.market,
+                line: options.line,
+                odds: options.odds,
+                model_probability: 0.55,
+                implied_probability: 0.52,
+                edge: 0.03,
+                kelly_bet: 0.06,
+                recommendation: 'slight_edge'
+            };
+        }
+
+        const params = new URLSearchParams();
+        if (options.player_id) params.append('player_id', options.player_id);
+        if (options.market) params.append('market', options.market);
+        if (options.line !== undefined) params.append('line', options.line);
+        if (options.odds !== undefined) params.append('odds', options.odds);
+
+        const query = params.toString() ? `?${params.toString()}` : '';
+        return await this._fetch(`/api/v1/props/value${query}`);
+    }
+
+    /**
+     * Compare multiple props side-by-side
+     * POST /api/v1/props/compare
+     *
+     * @param {Array} props - Array of prop objects to compare
+     * Each prop should have: { player_id, market, line, odds }
+     */
+    async getPropsCompare(props) {
+        if (!this.useBackend) {
+            return {
+                props: props.map(p => ({
+                    ...p,
+                    model_probability: 0.55,
+                    edge: 0.03,
+                    rank: 1
+                })),
+                best_value: props[0]
+            };
+        }
+
+        return await this._fetch('/api/v1/props/compare', {
+            method: 'POST',
+            body: JSON.stringify({ props })
+        });
     }
 
     // ==================== RECOMMENDATIONS ====================
@@ -643,6 +721,23 @@ class NFLAPIService {
         if (limit) params.append('limit', limit);
 
         return await this._fetch(`/api/v1/players/${playerId}/gamelogs?${params.toString()}`);
+    }
+
+    /**
+     * Get player-specific insights and analysis
+     * GET /api/v1/players/{player_id}/insights
+     *
+     * @param {string} playerId - Player identifier
+     */
+    async getPlayerInsights(playerId) {
+        if (!this.useBackend) {
+            return {
+                player_id: playerId,
+                insights: []
+            };
+        }
+
+        return await this._fetch(`/api/v1/players/${playerId}/insights`);
     }
 
     // ==================== BOX SCORES ====================

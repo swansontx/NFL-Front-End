@@ -20,6 +20,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function loadGameData() {
     await Promise.all([
         loadGameHeader(),
+        loadGamePropSheet(),
+        loadGameProjections(),
         loadGameWeather(),
         loadGameInjuries(),
         loadGameInsights(),
@@ -87,6 +89,129 @@ async function loadGameHeader() {
                 <h4>Unable to load game details</h4>
             </div>
         `;
+    }
+}
+
+// Load game prop sheet
+async function loadGamePropSheet() {
+    const container = document.getElementById('gamePropSheet');
+    if (!container) return;
+
+    container.innerHTML = `<div class="loading-state"><div class="spinner"></div></div>`;
+
+    try {
+        const propSheet = await apiService.getGamePropSheet(currentGameId);
+
+        if (!propSheet || !propSheet.props || propSheet.props.length === 0) {
+            container.innerHTML = `<p class="empty-message">Prop sheet unavailable</p>`;
+            return;
+        }
+
+        // Group props by position
+        const propsByPosition = {};
+        propSheet.props.forEach(prop => {
+            const pos = prop.position || 'OTHER';
+            if (!propsByPosition[pos]) propsByPosition[pos] = [];
+            propsByPosition[pos].push(prop);
+        });
+
+        container.innerHTML = `
+            <div class="prop-sheet-tabs">
+                ${Object.keys(propsByPosition).map(pos =>
+                    `<button class="prop-tab" data-position="${pos}">${pos}</button>`
+                ).join('')}
+            </div>
+            <div class="prop-sheet-content">
+                ${Object.entries(propsByPosition).map(([pos, props]) => `
+                    <div class="prop-position-group" data-position="${pos}">
+                        <div class="props-grid">
+                            ${props.map(prop => createPropCard(prop)).join('')}
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+
+        // Add tab functionality
+        const tabs = container.querySelectorAll('.prop-tab');
+        const groups = container.querySelectorAll('.prop-position-group');
+
+        tabs.forEach((tab, index) => {
+            if (index === 0) {
+                tab.classList.add('active');
+                groups[index].classList.add('active');
+            }
+
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                groups.forEach(g => g.classList.remove('active'));
+                tab.classList.add('active');
+                const position = tab.dataset.position;
+                container.querySelector(`.prop-position-group[data-position="${position}"]`).classList.add('active');
+            });
+        });
+
+    } catch (error) {
+        console.error('Error loading prop sheet:', error);
+        container.innerHTML = `<p class="empty-message">Prop sheet unavailable</p>`;
+    }
+}
+
+// Load game projections
+async function loadGameProjections() {
+    const container = document.getElementById('gameProjections');
+    if (!container) return;
+
+    container.innerHTML = `<div class="loading-state"><div class="spinner"></div></div>`;
+
+    try {
+        const projections = await apiService.getGameProjections(currentGameId, { limit: 20 });
+
+        if (!projections || !projections.projections || projections.projections.length === 0) {
+            container.innerHTML = `<p class="empty-message">Projections unavailable</p>`;
+            return;
+        }
+
+        // Sort by confidence
+        const sortedProjections = projections.projections.sort((a, b) =>
+            (b.confidence || 0) - (a.confidence || 0)
+        );
+
+        container.innerHTML = `
+            <div class="projections-list">
+                ${sortedProjections.map(proj => `
+                    <div class="projection-item">
+                        <div class="projection-header">
+                            <div class="projection-player">
+                                <span class="player-name">${proj.player_name}</span>
+                                <span class="player-meta">${proj.position} • ${proj.team}</span>
+                            </div>
+                            ${proj.confidence ? `
+                                <span class="projection-confidence confidence-${getConfidenceLevel(proj.confidence)}">
+                                    ${Math.round(proj.confidence * 100)}%
+                                </span>
+                            ` : ''}
+                        </div>
+                        <div class="projection-details">
+                            <div class="projection-stat">
+                                <span class="stat-label">${formatMarketName(proj.market)}</span>
+                                <span class="stat-value">${proj.mu !== undefined ? proj.mu.toFixed(1) : 'N/A'}</span>
+                            </div>
+                            ${proj.prob_over_line ? `
+                                <div class="projection-probability">
+                                    Over ${proj.line}: ${Math.round(proj.prob_over_line * 100)}%
+                                </div>
+                            ` : ''}
+                        </div>
+                        ${proj.tier ? `<span class="projection-tier tier-${proj.tier}">${proj.tier.toUpperCase()}</span>` : ''}
+                    </div>
+                `).join('')}
+            </div>
+        `;
+
+    } catch (error) {
+        console.error('Error loading projections:', error);
+        container.innerHTML = `<p class="empty-message">Projections unavailable</p>`;
     }
 }
 
@@ -554,4 +679,39 @@ function formatTimeAgo(dateStr) {
     if (diffDays === 1) return '1 day ago';
     if (diffDays < 7) return `${diffDays} days ago`;
     return date.toLocaleDateString();
+}
+
+function createPropCard(prop) {
+    return `
+        <div class="prop-card">
+            <div class="prop-player-info">
+                <span class="prop-player-name">${prop.player_name || 'Unknown'}</span>
+                <span class="prop-team">${prop.team || ''}</span>
+            </div>
+            <div class="prop-market">
+                <span class="prop-market-name">${formatMarketName(prop.market)}</span>
+            </div>
+            <div class="prop-line">
+                <span class="prop-line-value">${prop.line !== undefined ? prop.line : 'N/A'}</span>
+            </div>
+            <div class="prop-odds">
+                <button class="prop-bet-btn over">O ${prop.over_odds || '-110'}</button>
+                <button class="prop-bet-btn under">U ${prop.under_odds || '-110'}</button>
+            </div>
+        </div>
+    `;
+}
+
+function getConfidenceLevel(confidence) {
+    if (confidence >= 0.75) return 'high';
+    if (confidence >= 0.60) return 'medium';
+    return 'low';
+}
+
+function formatMarketName(market) {
+    if (!market) return 'Unknown';
+    return market
+        .replace('player_', '')
+        .replace(/_/g, ' ')
+        .replace(/\b\w/g, l => l.toUpperCase());
 }

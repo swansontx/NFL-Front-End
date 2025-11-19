@@ -7,6 +7,7 @@ let currentSeason = 2024;
 // Initialize the app when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     initializeDayTabs();
+    loadNewsFeed();
     loadBestBets();
     loadBestProps();
     loadProjections();
@@ -72,6 +73,57 @@ function navigateWeek(direction) {
 
     console.log(`Navigate to week: ${currentWeek}`);
     loadGames(0); // Reload current day's games for new week
+}
+
+// Load news feed
+async function loadNewsFeed() {
+    const newsFeed = document.getElementById('newsFeed');
+    if (!newsFeed) return;
+
+    try {
+        const news = await apiService.getNews({ limit: 10 });
+
+        if (!news || news.length === 0) {
+            // Keep the mock data if no real news available
+            return;
+        }
+
+        newsFeed.innerHTML = news.map(item => `
+            <div class="news-item">
+                <span class="news-tag ${getCategoryClass(item.category)}">${item.category || 'News'}</span>
+                <p><strong>${item.title || item.player_name || 'Update'}</strong>${item.description ? ` - ${item.description}` : ''}</p>
+                <span class="news-time">${formatTimeAgo(item.published_at || item.created_at)}</span>
+            </div>
+        `).join('');
+
+    } catch (error) {
+        console.error('Error loading news feed:', error);
+        // Keep mock data on error
+    }
+}
+
+function getCategoryClass(category) {
+    if (!category) return 'news';
+    const cat = category.toLowerCase();
+    if (cat.includes('injury')) return 'injury';
+    if (cat.includes('weather')) return 'weather';
+    if (cat.includes('lineup')) return 'lineup';
+    return 'news';
+}
+
+function formatTimeAgo(dateStr) {
+    if (!dateStr) return 'Recently';
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffHours < 1) return 'Just now';
+    if (diffHours < 24) return `${diffHours} hours ago`;
+    if (diffDays === 1) return '1 day ago';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    return date.toLocaleDateString();
 }
 
 // Load games from backend API
