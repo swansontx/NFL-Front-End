@@ -65,6 +65,21 @@ async function loadGameDetails() {
     // Load game header
     loadGameHeader(game);
 
+    // Load weather conditions
+    loadWeather(game);
+
+    // Load injury report
+    loadInjuryReport(game);
+
+    // Load game insights
+    loadGameInsights(game);
+
+    // Load related content
+    loadRelatedContent(game);
+
+    // Load top props and parlays
+    loadTopPropsAndParlays(game);
+
     // Load betting markets
     loadGameLines(game);
 
@@ -382,4 +397,424 @@ function formatGameDate(dateStr) {
     const date = new Date(dateStr);
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     return date.toLocaleDateString('en-US', options);
+}
+
+// Load Weather Conditions
+async function loadWeather(game) {
+    const container = document.getElementById('weatherWidget');
+    if (!container) return;
+
+    // Show loading state
+    container.innerHTML = `
+        <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading weather...</p>
+        </div>
+    `;
+
+    try {
+        const weather = await apiService.getGameWeather(currentGameId);
+
+        container.innerHTML = `
+            <div class="weather-card ${getWeatherImpact(weather)}">
+                <div class="weather-main">
+                    <div class="weather-icon">${getWeatherIcon(weather.condition)}</div>
+                    <div class="weather-temp">
+                        <span class="temp-value">${weather.temperature}°${weather.temp_unit}</span>
+                        <span class="weather-condition">${weather.condition}</span>
+                    </div>
+                </div>
+                <div class="weather-details">
+                    <div class="weather-detail">
+                        <span class="detail-label">Wind</span>
+                        <span class="detail-value ${weather.wind_speed > 15 ? 'warning' : ''}">${weather.wind_speed} ${weather.wind_unit}</span>
+                    </div>
+                    <div class="weather-detail">
+                        <span class="detail-label">Humidity</span>
+                        <span class="detail-value">${weather.humidity}%</span>
+                    </div>
+                    <div class="weather-detail">
+                        <span class="detail-label">Precipitation</span>
+                        <span class="detail-value">${weather.precipitation_chance}%</span>
+                    </div>
+                    ${weather.is_dome ? '<div class="weather-dome">🏟️ Indoor Stadium</div>' : ''}
+                </div>
+                ${getWeatherImpactMessage(weather)}
+            </div>
+        `;
+
+    } catch (error) {
+        console.error('Error loading weather:', error);
+        container.innerHTML = `
+            <div class="empty-state">
+                <span class="empty-icon">🌤️</span>
+                <p>Weather data unavailable</p>
+            </div>
+        `;
+    }
+}
+
+function getWeatherIcon(condition) {
+    const icons = {
+        'Clear': '☀️',
+        'Clouds': '☁️',
+        'Rain': '🌧️',
+        'Snow': '❄️',
+        'Fog': '🌫️'
+    };
+    return icons[condition] || '🌤️';
+}
+
+function getWeatherImpact(weather) {
+    if (weather.is_dome) return 'impact-none';
+    if (weather.wind_speed > 20 || weather.condition === 'Snow' || weather.condition === 'Rain') return 'impact-high';
+    if (weather.wind_speed > 15 || weather.precipitation_chance > 50) return 'impact-medium';
+    return 'impact-low';
+}
+
+function getWeatherImpactMessage(weather) {
+    if (weather.is_dome) {
+        return '<div class="weather-impact impact-none">✅ Indoor game - No weather impact</div>';
+    }
+
+    if (weather.wind_speed > 20) {
+        return '<div class="weather-impact impact-high">⚠️ High winds - Significant impact on passing game</div>';
+    }
+
+    if (weather.condition === 'Rain' || weather.condition === 'Snow') {
+        return '<div class="weather-impact impact-high">⚠️ Adverse conditions - Favor rushing props</div>';
+    }
+
+    if (weather.wind_speed > 15) {
+        return '<div class="weather-impact impact-medium">⚠️ Moderate winds - May affect deep passes</div>';
+    }
+
+    return '<div class="weather-impact impact-low">✅ Good conditions for all prop types</div>';
+}
+
+// Load Injury Report
+async function loadInjuryReport(game) {
+    const container = document.getElementById('injuryRoster');
+    if (!container) return;
+
+    // Show loading state
+    container.innerHTML = `
+        <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading injury report...</p>
+        </div>
+    `;
+
+    try {
+        const injuries = await apiService.getGameInjuries(currentGameId);
+
+        if (injuries.away_injuries.length === 0 && injuries.home_injuries.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <span class="empty-icon">✅</span>
+                    <p>No injuries reported for this game</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = `
+            <div class="injury-column">
+                <h4>${injuries.away_team} Injuries</h4>
+                ${injuries.away_injuries.length > 0 ? injuries.away_injuries.map(injury => createInjuryCard(injury)).join('') : '<p class="no-injuries">No injuries reported</p>'}
+            </div>
+            <div class="injury-column">
+                <h4>${injuries.home_team} Injuries</h4>
+                ${injuries.home_injuries.length > 0 ? injuries.home_injuries.map(injury => createInjuryCard(injury)).join('') : '<p class="no-injuries">No injuries reported</p>'}
+            </div>
+        `;
+
+    } catch (error) {
+        console.error('Error loading injuries:', error);
+        container.innerHTML = `
+            <div class="empty-state">
+                <span class="empty-icon">🏥</span>
+                <p>Injury data unavailable</p>
+                <small>Backend API unavailable</small>
+            </div>
+        `;
+    }
+}
+
+function createInjuryCard(injury) {
+    const statusClass = injury.injury_status.toLowerCase().replace(' ', '-');
+    const impactLevel = getInjuryImpact(injury.position, injury.injury_status);
+
+    return `
+        <div class="injury-card impact-${impactLevel}">
+            <div class="injury-header">
+                <span class="injury-player">${injury.player_name}</span>
+                <span class="injury-status status-${statusClass}">${injury.injury_status}</span>
+            </div>
+            <div class="injury-details">
+                <span class="injury-position">${injury.position}</span>
+                ${injury.injury_body_part ? `<span class="injury-type">${injury.injury_body_part}</span>` : ''}
+            </div>
+            ${injury.injury_notes ? `<p class="injury-description">${injury.injury_notes}</p>` : ''}
+        </div>
+    `;
+}
+
+function getInjuryImpact(position, status) {
+    // QB, RB, WR are high impact positions
+    const highImpactPositions = ['QB', 'RB', 'WR', 'TE'];
+    const isHighImpactPosition = highImpactPositions.includes(position);
+
+    if (status === 'Out' || status === 'IR') {
+        return isHighImpactPosition ? 'high' : 'medium';
+    }
+
+    if (status === 'Doubtful') {
+        return isHighImpactPosition ? 'medium' : 'low';
+    }
+
+    return 'low';
+}
+
+// Load Game Insights
+async function loadGameInsights(game) {
+    const container = document.getElementById('matchupInsights');
+    if (!container) return;
+
+    // Show loading state
+    container.innerHTML = `
+        <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading insights...</p>
+        </div>
+    `;
+
+    try {
+        const insights = await apiService.getGameInsights(currentGameId);
+
+        if (!insights || insights.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <span class="empty-icon">⚡</span>
+                    <p>No insights available</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = insights.map(insight => `
+            <div class="insight-card">
+                <div class="insight-header">
+                    <span class="insight-icon">${getInsightIcon(insight.insight_type)}</span>
+                    <h4>${insight.title}</h4>
+                </div>
+                <p class="insight-description">${insight.description}</p>
+                <div class="insight-confidence">
+                    <span class="confidence-label">Confidence:</span>
+                    <span class="confidence-value">${(insight.confidence * 100).toFixed(0)}%</span>
+                </div>
+                ${insight.supporting_data ? createSupportingData(insight.supporting_data) : ''}
+            </div>
+        `).join('');
+
+    } catch (error) {
+        console.error('Error loading insights:', error);
+        container.innerHTML = `
+            <div class="empty-state">
+                <span class="empty-icon">⚡</span>
+                <p>Insights unavailable</p>
+                <small>Backend API unavailable</small>
+            </div>
+        `;
+    }
+}
+
+function getInsightIcon(type) {
+    const icons = {
+        'trend': '📈',
+        'stat': '📊',
+        'matchup': '⚔️',
+        'weather': '🌤️',
+        'injury': '🏥'
+    };
+    return icons[type] || '💡';
+}
+
+function createSupportingData(data) {
+    if (!data || typeof data !== 'object') return '';
+
+    const stats = Object.entries(data)
+        .filter(([key, value]) => typeof value === 'number' || typeof value === 'string')
+        .slice(0, 3)
+        .map(([key, value]) => {
+            const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            return `<span class="insight-stat">${label}: ${value}</span>`;
+        })
+        .join('');
+
+    return stats ? `<div class="insight-stats">${stats}</div>` : '';
+}
+
+// Load Related Content (Articles & Videos)
+async function loadRelatedContent(game) {
+    const container = document.getElementById('relatedContent');
+    if (!container) return;
+
+    // Show loading state
+    container.innerHTML = `
+        <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading related content...</p>
+        </div>
+    `;
+
+    try {
+        // Fetch content from backend
+        const content = await apiService.getGameContent(currentGameId, {
+            limit: 8
+        });
+
+        if (!content || content.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <span class="empty-icon">📰</span>
+                    <p>No related content available</p>
+                </div>
+            `;
+            return;
+        }
+
+        // Render content
+        container.innerHTML = content.map(item => `
+            <a href="${item.url}" class="content-card" target="_blank" rel="noopener noreferrer">
+                <div class="content-thumbnail">${item.content_type === 'video' ? '🎥' : '📄'}</div>
+                <div class="content-info">
+                    <h4 class="content-title">${item.title}</h4>
+                    <div class="content-meta">
+                        <span class="content-source">${item.source}</span>
+                        <span class="content-time">${formatTimeAgo(item.published_at)}</span>
+                    </div>
+                </div>
+            </a>
+        `).join('');
+
+    } catch (error) {
+        console.error('Error loading related content:', error);
+        container.innerHTML = `
+            <div class="empty-state">
+                <span class="empty-icon">📰</span>
+                <p>Unable to load related content</p>
+                <small>Backend API unavailable</small>
+            </div>
+        `;
+    }
+}
+
+// Format time ago helper
+function formatTimeAgo(dateStr) {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffHours < 1) return 'Just now';
+    if (diffHours < 24) return `${diffHours} hours ago`;
+    if (diffDays === 1) return '1 day ago';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    return date.toLocaleDateString();
+}
+
+// Load Top Props & Suggested Parlays
+async function loadTopPropsAndParlays(game) {
+    const topPropsContainer = document.getElementById('topProps');
+    const parlaysContainer = document.getElementById('suggestedParlays');
+
+    if (!topPropsContainer || !parlaysContainer) return;
+
+    // Try to load from backend
+    try {
+        // Get recommendations for top props
+        const recs = await apiService.getRecommendations(currentGameId, {
+            limit: 5,
+            min_confidence: 0.65
+        });
+
+        if (recs.recommendations && recs.recommendations.length > 0) {
+            const topProps = recs.recommendations.slice(0, 5);
+            topPropsContainer.innerHTML = topProps.map((prop, index) => `
+                <div class="top-prop-item">
+                    <div class="top-prop-rank">#${index + 1}</div>
+                    <div class="top-prop-details">
+                        <div class="top-prop-player">${prop.player_name}</div>
+                        <div class="top-prop-market">${formatMarketName(prop.market)} ${prop.line}</div>
+                        <div class="top-prop-odds">${prop.market_odds ? formatOdds(prop.market_odds) : '-110'}</div>
+                    </div>
+                    <div class="rating-badge ${getRatingClass(mapConfidenceToRating(prop.confidence))}">
+                        ${mapConfidenceToRating(prop.confidence).toUpperCase()}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Get parlay suggestions
+        const parlays = await apiService.getParlays(currentGameId, {
+            num_legs: 3,
+            risk_category: 'moderate'
+        });
+
+        if (parlays.parlays && parlays.parlays.length > 0) {
+            parlaysContainer.innerHTML = parlays.parlays.slice(0, 3).map((parlay, index) => `
+                <div class="parlay-card">
+                    <div class="parlay-header">
+                        <span class="parlay-name">${parlay.name || `Parlay ${index + 1}`}</span>
+                        <span class="parlay-odds">${parlay.total_odds ? formatOdds(parlay.total_odds) : '+280'}</span>
+                    </div>
+                    <div class="parlay-legs">
+                        ${(parlay.legs || []).map(leg => `
+                            <div class="parlay-leg">
+                                ${leg.player_name ? `${leg.player_name} - ` : ''}
+                                ${leg.description || formatMarketName(leg.market) + ' ' + leg.line}
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="parlay-confidence">
+                        Confidence: ${parlay.confidence ? (parlay.confidence * 100).toFixed(0) : '65'}%
+                    </div>
+                </div>
+            `).join('');
+        }
+
+    } catch (error) {
+        console.error('Error loading props and parlays:', error);
+
+        // Show helpful empty state
+        topPropsContainer.innerHTML = `
+            <div class="empty-state">
+                <span class="empty-icon">📊</span>
+                <p>Unable to load top props</p>
+                <small>Backend API unavailable. Please ensure the server is running at http://localhost:8000</small>
+            </div>
+        `;
+
+        parlaysContainer.innerHTML = `
+            <div class="empty-state">
+                <span class="empty-icon">🎲</span>
+                <p>Unable to load parlays</p>
+                <small>Backend API unavailable.</small>
+            </div>
+        `;
+    }
+}
+
+function formatMarketName(market) {
+    const parts = market.replace('player_', '').split('_');
+    return parts.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ');
+}
+
+function mapConfidenceToRating(confidence) {
+    if (confidence >= 0.8) return 'excellent';
+    if (confidence >= 0.7) return 'good';
+    if (confidence >= 0.6) return 'moderate';
+    return 'poor';
 }

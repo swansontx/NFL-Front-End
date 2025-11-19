@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team Details - NFL Betting Hub</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <h1 class="logo">🏈 NFL Betting Hub</h1>
+            <ul class="nav-links">
+                <li><a href="index.html">Schedule</a></li>
+                <li><a href="teams.html" class="active">Teams</a></li>
+                <li><a href="#best-bets">Best Bets</a></li>
+                <li><a href="#best-props">Best Props</a></li>
+                <li><a href="parlay-generator.html">Parlays</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container team-page-container">
+        <a href="teams.html" class="back-link">← Back to Teams</a>
+
+        <!-- Team Header -->
+        <div class="team-page-header" id="teamHeader">
+            <!-- Populated by JavaScript -->
+        </div>
+
+        <div class="team-content-layout">
+            <!-- Sidebar with Team Stats -->
+            <aside class="team-stats-sidebar">
+                <div class="sidebar-section">
+                    <h3>Team Stats</h3>
+                    <div id="teamStatsWidget">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3>Rankings</h3>
+                    <div id="teamRankings">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="team-main-content">
+                <!-- Recent News -->
+                <section class="team-section">
+                    <h2>📰 Recent News</h2>
+                    <div id="teamNews" class="team-news-list">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </section>
+
+                <!-- Injury Report -->
+                <section class="team-section">
+                    <h2>🏥 Injury Report</h2>
+                    <div id="teamInjuries" class="team-injuries-list">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </section>
+
+                <!-- Schedule & Results -->
+                <section class="team-section">
+                    <div class="section-header">
+                        <h2>📅 Schedule & Results</h2>
+                        <select id="seasonFilter" class="season-select">
+                            <option value="2024" selected>2024 Season</option>
+                            <option value="2023">2023 Season</option>
+                        </select>
+                    </div>
+                    <div id="teamSchedule" class="team-schedule">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <!-- Box Score Modal -->
+    <div id="boxScoreModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Box Score</h2>
+                <button class="modal-close" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body" id="boxScoreContent">
+                <!-- Populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/api-service.js"></script>
+    <script src="js/team.js"></script>
+</body>
+</html>

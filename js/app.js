@@ -80,11 +80,7 @@ async function loadGames(dayOffset) {
     if (!gamesGrid) return;
 
     // Show loading state
-    gamesGrid.innerHTML = `
-        <div style="grid-column: 1 / -1; text-align: center; padding: 4rem; color: var(--text-secondary);">
-            <p>Loading games...</p>
-        </div>
-    `;
+    showLoadingState('gamesGrid', 'Loading games...');
 
     try {
         // Try backend API first
@@ -203,17 +199,51 @@ function formatTime(time) {
     return `${displayHour}:${minutes} ${ampm} ET`;
 }
 
+// Utility functions for UI states
+function showLoadingState(containerId, message = 'Loading...') {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    container.innerHTML = `
+        <div class="loading-state">
+            <div class="spinner"></div>
+            <p>${message}</p>
+        </div>
+    `;
+}
+
+function showError(containerId, message, details = null) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    container.innerHTML = `
+        <div class="error-state">
+            <span class="error-icon">⚠️</span>
+            <h4>${message}</h4>
+            ${details ? `<p>${details}</p>` : ''}
+        </div>
+    `;
+}
+
+function showEmptyState(containerId, message, icon = '📭') {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    container.innerHTML = `
+        <div class="empty-state">
+            <span class="empty-icon">${icon}</span>
+            <p>${message}</p>
+        </div>
+    `;
+}
+
 // Load Best Bets from backend API
 async function loadBestBets() {
     const container = document.getElementById('bestBetsGrid');
     if (!container) return;
 
     // Show loading state
-    container.innerHTML = `
-        <div style="grid-column: 1 / -1; text-align: center; padding: 2rem; color: var(--text-secondary);">
-            <p>Loading best bets...</p>
-        </div>
-    `;
+    showLoadingState('bestBetsGrid', 'Loading best bets...');
 
     try {
         // Get today's games
@@ -309,11 +339,7 @@ async function loadBestProps() {
     if (!container) return;
 
     // Show loading state
-    container.innerHTML = `
-        <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
-            <p>Loading best props...</p>
-        </div>
-    `;
+    showLoadingState('bestPropsList', 'Loading best props...');
 
     try {
         // Get today's games
@@ -403,8 +429,11 @@ async function loadProjections() {
     // Show loading state
     container.innerHTML = `
         <tr>
-            <td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-secondary);">
-                Loading projections...
+            <td colspan="7">
+                <div class="loading-state">
+                    <div class="spinner"></div>
+                    <p>Loading projections...</p>
+                </div>
             </td>
         </tr>
     `;
