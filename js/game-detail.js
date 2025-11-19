@@ -56,11 +56,8 @@ async function loadGameDetails() {
         game = convertBackendGameToFrontend(gameResponse);
     } catch (error) {
         console.error('Error loading game from backend:', error);
-        // Fallback to mock data
-        game = getGameById(currentGameId);
-    }
-
-    if (!game) {
+        // Show error and redirect
+        alert('Unable to load game details. Backend API is not available.');
         window.location.href = 'index.html';
         return;
     }
@@ -139,10 +136,15 @@ async function loadPlayerPropsFromBackend() {
     } catch (error) {
         console.error('Error loading props from backend:', error);
 
-        // Fallback to mock data
-        console.log('Falling back to mock data...');
-        allPlayerProps = getPlayerProps(currentGameId) || [];
-        loadPlayerProps(allPlayerProps);
+        // Show error state
+        playerPropsBody.innerHTML = `
+            <tr>
+                <td colspan="6" style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                    <h4>Unable to load player props</h4>
+                    <p>Backend API is not available.</p>
+                </td>
+            </tr>
+        `;
     }
 }
 

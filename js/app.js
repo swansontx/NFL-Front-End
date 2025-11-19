@@ -121,29 +121,14 @@ async function loadGames(dayOffset) {
     } catch (error) {
         console.error('Error loading games from backend:', error);
 
-        // Fallback to mock data
-        console.log('Falling back to mock data...');
-        const games = getGamesByDay(dayOffset);
-
-        if (games.length === 0) {
-            gamesGrid.innerHTML = `
-                <div style="grid-column: 1 / -1; text-align: center; padding: 4rem; color: var(--text-secondary);">
-                    <h3>No games scheduled for this day</h3>
-                    <p>Check another day for upcoming games</p>
-                </div>
-            `;
-            return;
-        }
-
-        gamesGrid.innerHTML = games.map(game => createGameCard(game)).join('');
-
-        // Add click handlers
-        document.querySelectorAll('.game-card').forEach(card => {
-            card.addEventListener('click', function() {
-                const gameId = this.getAttribute('data-game-id');
-                window.location.href = `game-detail.html?id=${gameId}`;
-            });
-        });
+        // Show error state
+        gamesGrid.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 4rem; color: var(--text-secondary);">
+                <h3>Unable to load games</h3>
+                <p>Backend API is not available. Please ensure the backend is running at http://localhost:8000</p>
+                <p style="color: var(--text-tertiary); margin-top: 1rem; font-size: 0.875rem;">Error: ${error.message}</p>
+            </div>
+        `;
     }
 }
 
@@ -279,53 +264,13 @@ async function loadBestBets() {
     } catch (error) {
         console.error('Error loading best bets from backend:', error);
 
-        // Fallback to hardcoded data
-        const bestBets = [
-            {
-                game: 'Kansas City @ Buffalo',
-                pick: 'Over 54.5',
-                odds: '-110',
-                confidence: 'High',
-                reason: '8-2 record on overs in matchups this season'
-            },
-            {
-                game: 'Philadelphia @ Dallas',
-                pick: 'Eagles -7.5',
-                odds: '-110',
-                confidence: 'High',
-                reason: 'Eagles 8-2 ATS in last 10 games'
-            },
-            {
-                game: 'Green Bay vs Chicago',
-                pick: 'Packers ML',
-                odds: '-420',
-                confidence: 'Medium',
-                reason: 'Packers dominant at home this season'
-            },
-            {
-                game: 'Baltimore vs Cincinnati',
-                pick: 'Under 52.5',
-                odds: '-110',
-                confidence: 'Medium',
-                reason: 'Strong defensive matchup, weather concerns'
-            }
-        ];
-
-        container.innerHTML = bestBets.map(bet => `
-            <div class="best-bet-card">
-                <div class="best-bet-header">
-                    <div class="best-bet-matchup">
-                        <div class="best-bet-game">${bet.game}</div>
-                        <div class="best-bet-pick">${bet.pick}</div>
-                    </div>
-                    <div class="best-bet-confidence">${bet.confidence}</div>
-                </div>
-                <div class="best-bet-details">
-                    <div class="best-bet-odds">${bet.odds}</div>
-                    <div class="best-bet-reason">${bet.reason}</div>
-                </div>
+        // Show error state
+        container.innerHTML = `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 2rem; color: var(--text-secondary);">
+                <h4>Unable to load best bets</h4>
+                <p>Backend API is not available.</p>
             </div>
-        `).join('');
+        `;
     }
 }
 
@@ -433,66 +378,13 @@ async function loadBestProps() {
     } catch (error) {
         console.error('Error loading best props from backend:', error);
 
-        // Fallback to hardcoded data
-        const bestProps = [
-            {
-                rank: 1,
-                player: 'Patrick Mahomes',
-                team: 'KC',
-                prop: 'Over 287.5 Passing Yards',
-                line: '287.5',
-                odds: '-115',
-                rating: 'excellent'
-            },
-            {
-                rank: 2,
-                player: 'Josh Allen',
-                team: 'BUF',
-                prop: 'Over 42.5 Rushing Yards',
-                line: '42.5',
-                odds: '-120',
-                rating: 'excellent'
-            },
-            {
-                rank: 3,
-                player: 'Travis Kelce',
-                team: 'KC',
-                prop: 'Over 5.5 Receptions',
-                line: '5.5',
-                odds: '-130',
-                rating: 'good'
-            },
-            {
-                rank: 4,
-                player: 'Stefon Diggs',
-                team: 'BUF',
-                prop: 'Over 73.5 Receiving Yards',
-                line: '73.5',
-                odds: '+100',
-                rating: 'good'
-            },
-            {
-                rank: 5,
-                player: 'Jalen Hurts',
-                team: 'PHI',
-                prop: 'Over 1.5 Passing TDs',
-                line: '1.5',
-                odds: '-135',
-                rating: 'moderate'
-            }
-        ];
-
-        container.innerHTML = bestProps.map(prop => `
-            <div class="best-prop-item">
-                <div class="best-prop-rank">${prop.rank}</div>
-                <div class="best-prop-info">
-                    <div class="best-prop-player">${prop.player} <span class="best-prop-team">${prop.team}</span></div>
-                    <div class="best-prop-line">${prop.prop}</div>
-                </div>
-                <div class="best-prop-odds">${prop.odds}</div>
-                <div class="rating-badge ${getRatingClass(prop.rating)}">${prop.rating}</div>
+        // Show error state
+        container.innerHTML = `
+            <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                <h4>Unable to load best props</h4>
+                <p>Backend API is not available.</p>
             </div>
-        `).join('');
+        `;
     }
 }
 
@@ -595,77 +487,14 @@ async function loadProjections() {
     } catch (error) {
         console.error('Error loading projections from backend:', error);
 
-        // Fallback to hardcoded data
-        const projections = [
-            {
-                player: 'Patrick Mahomes',
-                team: 'KC',
-                passYds: 298,
-                passTD: 2.5,
-                rushYds: 12,
-                recYds: '-',
-                fantasyPts: 24.3
-            },
-            {
-                player: 'Josh Allen',
-                team: 'BUF',
-                passYds: 276,
-                passTD: 2.3,
-                rushYds: 48,
-                recYds: '-',
-                fantasyPts: 25.1
-            },
-            {
-                player: 'Travis Kelce',
-                team: 'KC',
-                passYds: '-',
-                passTD: '-',
-                rushYds: 2,
-                recYds: 72,
-                fantasyPts: 13.2
-            },
-            {
-                player: 'Stefon Diggs',
-                team: 'BUF',
-                passYds: '-',
-                passTD: '-',
-                rushYds: 1,
-                recYds: 84,
-                fantasyPts: 14.9
-            },
-            {
-                player: 'Jalen Hurts',
-                team: 'PHI',
-                passYds: 245,
-                passTD: 2.1,
-                rushYds: 52,
-                recYds: '-',
-                fantasyPts: 23.7
-            },
-            {
-                player: 'A.J. Brown',
-                team: 'PHI',
-                passYds: '-',
-                passTD: '-',
-                rushYds: 0,
-                recYds: 91,
-                fantasyPts: 15.6
-            }
-        ];
-
-        container.innerHTML = projections.map(proj => `
+        // Show error state
+        container.innerHTML = `
             <tr>
-                <td>
-                    <div class="projection-player">${proj.player}</div>
-                    <div class="projection-team">${proj.team}</div>
+                <td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                    <h4>Unable to load projections</h4>
+                    <p>Backend API is not available.</p>
                 </td>
-                <td class="projection-team">${proj.team}</td>
-                <td class="projection-value ${proj.passYds > 250 ? 'projection-high' : ''}">${proj.passYds}</td>
-                <td class="projection-value">${proj.passTD}</td>
-                <td class="projection-value ${proj.rushYds > 40 ? 'projection-high' : ''}">${proj.rushYds}</td>
-                <td class="projection-value ${proj.recYds > 80 ? 'projection-high' : ''}">${proj.recYds}</td>
-                <td class="projection-value ${proj.fantasyPts > 20 ? 'projection-high' : ''}">${proj.fantasyPts}</td>
             </tr>
-        `).join('');
+        `;
     }
 }

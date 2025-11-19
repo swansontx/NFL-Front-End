@@ -117,30 +117,13 @@ async function loadAvailableGames() {
     } catch (error) {
         console.error('Error loading games from backend:', error);
 
-        // Fallback to mock data
-        const allGames = [];
-        for (let i = 0; i < 7; i++) {
-            const dayGames = getGamesByDay(i);
-            allGames.push(...dayGames);
-        }
-
-        gameSelector.innerHTML = allGames.map(game => `
-            <label class="game-checkbox">
-                <input type="checkbox" value="${game.id}" class="game-checkbox-input">
-                <span class="game-checkbox-label">
-                    ${game.awayTeam} @ ${game.homeTeam}<br>
-                    <small style="color: var(--text-secondary);">${formatGameDateTime(game.date, game.time)}</small>
-                </span>
-            </label>
-        `).join('');
-
-        // Add event listeners to checkboxes
-        const checkboxes = gameSelector.querySelectorAll('.game-checkbox-input');
-        checkboxes.forEach(checkbox => {
-            checkbox.addEventListener('change', function() {
-                updateSelectedGames();
-            });
-        });
+        // Show error state
+        gameSelector.innerHTML = `
+            <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                <h4>Unable to load games</h4>
+                <p>Backend API is not available. Please ensure the backend is running at http://localhost:8000</p>
+            </div>
+        `;
     }
 }
 
@@ -197,11 +180,9 @@ async function generateParlays() {
 
     } catch (error) {
         console.error('Error generating parlays from backend:', error);
-        console.log('Falling back to local parlay generation...');
 
-        // Fallback to original logic
-        const parlays = createParlaysFromMarketLines();
-        displayParlays(parlays);
+        // Show error state
+        showEmptyState('Unable to generate parlays. Backend API is not available. Please ensure the backend is running at http://localhost:8000');
     }
 }
 
