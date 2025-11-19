@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loadNewsFeed();
     loadBestBets();
     loadBestProps();
+    loadTrendingProps();
     loadProjections();
     loadGames(currentDay);
     setupEventListeners();
@@ -124,6 +125,67 @@ function formatTimeAgo(dateStr) {
     if (diffDays === 1) return '1 day ago';
     if (diffDays < 7) return `${diffDays} days ago`;
     return date.toLocaleDateString();
+}
+
+// Load trending props
+async function loadTrendingProps() {
+    const container = document.getElementById('trendingPropsContainer');
+    if (!container) return;
+
+    container.innerHTML = '<div class="loading-state"><div class="spinner"></div></div>';
+
+    try {
+        const trending = await apiService.getPropsTrending({ week: currentWeek, limit: 10 });
+
+        if (!trending || !trending.trending_props || trending.trending_props.length === 0) {
+            container.innerHTML = `<p class="empty-message">No trending props available for this week</p>`;
+            return;
+        }
+
+        container.innerHTML = `
+            <div class="trending-props-grid">
+                ${trending.trending_props.map(prop => `
+                    <div class="trending-prop-card">
+                        <div class="trending-prop-header">
+                            <div class="prop-player-info">
+                                <span class="player-name">${prop.player_name || 'Unknown'}</span>
+                                <span class="player-team">${prop.team || ''} • ${prop.position || ''}</span>
+                            </div>
+                            <div class="trending-indicator ${prop.direction === 'up' ? 'trending-up' : 'trending-down'}">
+                                ${prop.direction === 'up' ? '⬆️' : '⬇️'}
+                                ${prop.movement ? Math.abs(prop.movement).toFixed(1) : '0'}
+                            </div>
+                        </div>
+                        <div class="trending-prop-details">
+                            <div class="prop-market-name">${formatMarketName(prop.market || prop.prop_type)}</div>
+                            <div class="prop-lines">
+                                <span class="old-line">Was: ${prop.opening_line || prop.previous_line || 'N/A'}</span>
+                                <span class="arrow">→</span>
+                                <span class="new-line">Now: ${prop.current_line || 'N/A'}</span>
+                            </div>
+                        </div>
+                        ${prop.movement_percentage ? `
+                            <div class="movement-badge">
+                                ${(prop.movement_percentage * 100).toFixed(1)}% movement
+                            </div>
+                        ` : ''}
+                    </div>
+                `).join('')}
+            </div>
+        `;
+
+    } catch (error) {
+        console.error('Error loading trending props:', error);
+        container.innerHTML = `<p class="empty-message">Unable to load trending props</p>`;
+    }
+}
+
+function formatMarketName(market) {
+    if (!market) return 'Unknown';
+    return market
+        .replace('player_', '')
+        .replace(/_/g, ' ')
+        .replace(/\b\w/g, l => l.toUpperCase());
 }
 
 // Load games from backend API

@@ -292,6 +292,81 @@ class NFLAPIService {
         });
     }
 
+    /**
+     * Get trending props (line movement tracking)
+     * GET /api/v1/props/trending
+     *
+     * @param {Object} options - Query parameters
+     * @param {number} options.week - Week number
+     * @param {number} options.limit - Max results (default 20)
+     */
+    async getPropsTrending(options = {}) {
+        if (!this.useBackend) {
+            return {
+                week: options.week,
+                trending_props: [],
+                total_count: 0
+            };
+        }
+
+        const params = new URLSearchParams();
+        if (options.week) params.append('week', options.week);
+        if (options.limit) params.append('limit', options.limit);
+
+        const query = params.toString() ? `?${params.toString()}` : '';
+        return await this._fetch(`/api/v1/props/trending${query}`);
+    }
+
+    /**
+     * Get current odds from DraftKings
+     * GET /api/v1/odds/current
+     *
+     * @param {Object} options - Query parameters
+     * @param {number} options.week - Week number
+     * @param {string} options.market - Market type (optional)
+     */
+    async getCurrentOdds(options = {}) {
+        if (!this.useBackend) {
+            return {
+                week: options.week,
+                odds: [],
+                last_updated: new Date().toISOString()
+            };
+        }
+
+        const params = new URLSearchParams();
+        if (options.week) params.append('week', options.week);
+        if (options.market) params.append('market', options.market);
+
+        const query = params.toString() ? `?${params.toString()}` : '';
+        return await this._fetch(`/api/v1/odds/current${query}`);
+    }
+
+    /**
+     * Get NFL standings
+     * GET /api/v1/standings
+     *
+     * @param {Object} options - Query parameters
+     * @param {number} options.season - Season year (default current)
+     * @param {number} options.week - Week number (optional)
+     */
+    async getStandings(options = {}) {
+        if (!this.useBackend) {
+            return {
+                season: options.season || 2024,
+                week: options.week,
+                divisions: []
+            };
+        }
+
+        const params = new URLSearchParams();
+        if (options.season) params.append('season', options.season);
+        if (options.week) params.append('week', options.week);
+
+        const query = params.toString() ? `?${params.toString()}` : '';
+        return await this._fetch(`/api/v1/standings${query}`);
+    }
+
     // ==================== RECOMMENDATIONS ====================
 
     /**
