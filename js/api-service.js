@@ -539,6 +539,22 @@ class NFLAPIService {
         return await this._fetch(`/api/v1/teams/${teamId}/schedule?${params.toString()}`);
     }
 
+    /**
+     * Get team news
+     * GET /api/v1/teams/{team_id}/news
+     *
+     * @param {string} teamId - Team identifier
+     * @param {number} limit - Max number of news items (default 20)
+     */
+    async getTeamNews(teamId, limit = 20) {
+        if (!this.useBackend) {
+            return [];
+        }
+
+        const params = new URLSearchParams({ limit: limit.toString() });
+        return await this._fetch(`/api/v1/teams/${teamId}/news?${params.toString()}`);
+    }
+
     // ==================== PLAYERS ====================
 
     /**

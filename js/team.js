@@ -176,10 +176,7 @@ async function loadTeamNews() {
     container.innerHTML = `<div class="loading-state"><div class="spinner"></div></div>`;
 
     try {
-        const news = await apiService.getNews({
-            team: currentTeamId,
-            limit: 5
-        });
+        const news = await apiService.getTeamNews(currentTeamId, 5);
 
         if (!news || news.length === 0) {
             container.innerHTML = `
@@ -198,7 +195,7 @@ async function loadTeamNews() {
                     <span class="news-time">${formatTimeAgo(item.published_at)}</span>
                 </div>
                 <h4 class="news-title">${item.title}</h4>
-                <p class="news-excerpt">${item.description || ''}</p>
+                <p class="news-excerpt">${item.summary || item.description || ''}</p>
             </div>
         `).join('');
 
@@ -466,9 +463,59 @@ function createQuarterScoreRows(boxScore) {
 
 // Create team stats table
 function createTeamStatsTable(teamStats) {
-    const categories = ['Total Yards', 'Passing Yards', 'Rushing Yards', 'Turnovers', 'Time of Possession'];
-    // This is a placeholder - actual implementation depends on backend data structure
-    return `<p class="empty-message">Team stats breakdown coming soon</p>`;
+    if (!teamStats || !teamStats.away || !teamStats.home) {
+        return `<p class="empty-message">Team stats unavailable</p>`;
+    }
+
+    const awayStats = teamStats.away;
+    const homeStats = teamStats.home;
+
+    // Define stat categories to display
+    const statCategories = [
+        { key: 'total_yards', label: 'Total Yards' },
+        { key: 'passing_yards', label: 'Passing Yards' },
+        { key: 'rushing_yards', label: 'Rushing Yards' },
+        { key: 'first_downs', label: 'First Downs' },
+        { key: 'third_down_conversions', label: '3rd Down Conversions' },
+        { key: 'fourth_down_conversions', label: '4th Down Conversions' },
+        { key: 'turnovers', label: 'Turnovers' },
+        { key: 'penalties', label: 'Penalties' },
+        { key: 'time_of_possession', label: 'Time of Possession' }
+    ];
+
+    return `
+        <table class="team-stats-table">
+            <thead>
+                <tr>
+                    <th class="stat-away-header">${teamStats.away_team || 'Away'}</th>
+                    <th class="stat-category-header">Stat</th>
+                    <th class="stat-home-header">${teamStats.home_team || 'Home'}</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${statCategories.map(stat => {
+                    const awayValue = awayStats[stat.key] !== undefined ? awayStats[stat.key] : '-';
+                    const homeValue = homeStats[stat.key] !== undefined ? homeStats[stat.key] : '-';
+
+                    // Highlight the better stat (except for turnovers and penalties where lower is better)
+                    const awayIsBetter = stat.key === 'turnovers' || stat.key === 'penalties'
+                        ? (awayValue !== '-' && homeValue !== '-' && awayValue < homeValue)
+                        : (awayValue !== '-' && homeValue !== '-' && awayValue > homeValue);
+                    const homeIsBetter = stat.key === 'turnovers' || stat.key === 'penalties'
+                        ? (awayValue !== '-' && homeValue !== '-' && homeValue < awayValue)
+                        : (awayValue !== '-' && homeValue !== '-' && homeValue > awayValue);
+
+                    return `
+                        <tr>
+                            <td class="stat-value ${awayIsBetter ? 'stat-better' : ''}">${awayValue}</td>
+                            <td class="stat-label">${stat.label}</td>
+                            <td class="stat-value ${homeIsBetter ? 'stat-better' : ''}">${homeValue}</td>
+                        </tr>
+                    `;
+                }).join('')}
+            </tbody>
+        </table>
+    `;
 }
 
 // Setup event listeners

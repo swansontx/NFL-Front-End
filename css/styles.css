@@ -3051,6 +3051,61 @@ body {
     margin-bottom: var(--space-md);
 }
 
+.team-stats-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.team-stats-table thead th {
+    padding: var(--space-md);
+    background: var(--bg-tertiary);
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+}
+
+.stat-away-header,
+.stat-home-header {
+    text-align: center;
+    color: var(--text-primary);
+}
+
+.stat-category-header {
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+.team-stats-table tbody tr {
+    border-bottom: 1px solid var(--border-light);
+}
+
+.team-stats-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.team-stats-table td {
+    padding: var(--space-md);
+}
+
+.team-stats-table .stat-value {
+    text-align: center;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+.team-stats-table .stat-label {
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.team-stats-table .stat-better {
+    background: var(--accent-green-dim);
+    color: var(--accent-green);
+    font-weight: 700;
+}
+
 .performer {
     display: flex;
     justify-content: space-between;
