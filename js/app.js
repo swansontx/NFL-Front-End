@@ -2,7 +2,7 @@
 
 let currentDay = 0;
 let currentWeek = 12;
-let currentSeason = 2025;
+let currentSeason = 2024;
 
 // Initialize the app when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
