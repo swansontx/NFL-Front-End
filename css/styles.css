@@ -2870,7 +2870,8 @@ body {
     color: var(--text-primary);
 }
 
-.box-score-btn {
+.box-score-btn,
+.game-preview-btn {
     padding: var(--space-xs) var(--space-md);
     background: var(--accent-blue);
     color: var(--text-white);
@@ -2879,10 +2880,13 @@ body {
     font-size: 0.813rem;
     font-weight: 600;
     cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
     transition: all var(--transition-base);
 }
 
-.box-score-btn:hover {
+.box-score-btn:hover,
+.game-preview-btn:hover {
     background: var(--accent-blue-light);
 }
 
@@ -3128,6 +3132,364 @@ body {
 .performer-stats {
     font-size: 0.875rem;
     color: var(--text-secondary);
+}
+
+/* ===== GAME DETAIL PAGE ===== */
+
+.game-page-container {
+    max-width: 1270px;
+    margin: 0 auto;
+    padding: var(--space-xl);
+}
+
+/* Game Header */
+.game-page-header {
+    background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy-medium) 100%);
+    border-radius: var(--radius-lg);
+    padding: var(--space-2xl);
+    margin-bottom: var(--space-2xl);
+    box-shadow: var(--shadow-lg);
+}
+
+.game-hero {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xl);
+}
+
+.game-date-info {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+}
+
+.game-week-label,
+.game-date-label,
+.game-time-label {
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 500;
+}
+
+.game-week-label {
+    padding: var(--space-xs) var(--space-md);
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: var(--radius-full);
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.game-matchup-display {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    gap: var(--space-2xl);
+}
+
+.game-team {
+    display: flex;
+    align-items: center;
+    gap: var(--space-lg);
+    flex: 1;
+}
+
+.game-team.winner {
+    opacity: 1;
+}
+
+.game-team:not(.winner) {
+    opacity: 0.7;
+}
+
+.team-logo-large {
+    font-size: 5rem;
+    flex-shrink: 0;
+}
+
+.team-info-display {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.team-name-display {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-white);
+    margin: 0;
+}
+
+.team-score-display {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--text-white);
+    line-height: 1;
+}
+
+.vs-divider {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.5);
+    padding: 0 var(--space-md);
+}
+
+.game-venue {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.938rem;
+}
+
+.venue-icon {
+    font-size: 1.25rem;
+}
+
+/* Game Content */
+.game-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2xl);
+}
+
+.game-section {
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--space-xl);
+    box-shadow: var(--shadow-card);
+}
+
+.game-section h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--space-lg);
+}
+
+/* Injuries by Team */
+.injuries-by-team {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-2xl);
+}
+
+.team-injuries-column {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.team-injuries-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 var(--space-md) 0;
+    padding-bottom: var(--space-sm);
+    border-bottom: 2px solid var(--border-light);
+}
+
+.injuries-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.injury-compact-item {
+    padding: var(--space-md);
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-light);
+}
+
+.injury-compact-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-xs);
+}
+
+.injury-player {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.938rem;
+}
+
+.injury-compact-desc {
+    font-size: 0.813rem;
+    color: var(--text-secondary);
+    margin: 0;
+    line-height: 1.4;
+}
+
+/* Insights */
+.insights-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: var(--space-lg);
+}
+
+.insight-card {
+    padding: var(--space-lg);
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-light);
+    transition: all var(--transition-base);
+}
+
+.insight-card:hover {
+    border-color: var(--accent-blue);
+    box-shadow: var(--shadow-sm);
+}
+
+.insight-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-md);
+}
+
+.insight-type {
+    padding: 0.25rem var(--space-sm);
+    background: var(--accent-blue-dim);
+    color: var(--accent-blue);
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.insight-confidence {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    font-weight: 600;
+}
+
+.insight-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 var(--space-sm) 0;
+}
+
+.insight-description {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* Narratives */
+.narratives-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-lg);
+}
+
+.narrative-item {
+    padding: var(--space-lg);
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    border-left: 4px solid var(--accent-blue);
+}
+
+.narrative-type {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--accent-blue);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 var(--space-md) 0;
+}
+
+.narrative-content {
+    font-size: 0.938rem;
+    color: var(--text-primary);
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+/* Related Content */
+.content-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--space-lg);
+}
+
+.content-card {
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-light);
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    transition: all var(--transition-base);
+}
+
+.content-card:hover {
+    border-color: var(--accent-blue);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+.content-thumbnail {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    background: var(--bg-secondary);
+}
+
+.content-info {
+    padding: var(--space-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.content-type-badge {
+    display: inline-block;
+    padding: 0.25rem var(--space-sm);
+    background: var(--accent-blue);
+    color: var(--text-white);
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    align-self: flex-start;
+}
+
+.content-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.content-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+}
+
+.content-source {
+    font-weight: 600;
+}
+
+.content-date {
+    font-weight: 400;
 }
 
 /* Responsive adjustments */

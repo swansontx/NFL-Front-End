@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Details - NFL Betting Hub</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <h1 class="logo">🏈 NFL Betting Hub</h1>
+            <ul class="nav-links">
+                <li><a href="index.html">Schedule</a></li>
+                <li><a href="teams.html">Teams</a></li>
+                <li><a href="#best-bets">Best Bets</a></li>
+                <li><a href="#best-props">Best Props</a></li>
+                <li><a href="parlay-generator.html">Parlays</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container game-page-container">
+        <a href="javascript:history.back()" class="back-link">← Back</a>
+
+        <!-- Game Header -->
+        <div class="game-page-header" id="gameHeader">
+            <!-- Populated by JavaScript -->
+        </div>
+
+        <!-- Main Content -->
+        <div class="game-content">
+            <!-- Weather Section -->
+            <section class="game-section">
+                <h2>🌤️ Weather Conditions</h2>
+                <div id="gameWeather">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </section>
+
+            <!-- Injuries Section -->
+            <section class="game-section">
+                <h2>🏥 Injury Report</h2>
+                <div id="gameInjuries">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </section>
+
+            <!-- Insights Section -->
+            <section class="game-section">
+                <h2>🧠 Matchup Insights</h2>
+                <div id="gameInsights">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </section>
+
+            <!-- Narrative Section -->
+            <section class="game-section">
+                <h2>📖 Game Narrative</h2>
+                <div id="gameNarrative">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </section>
+
+            <!-- Box Score Section (for completed games) -->
+            <section class="game-section" id="boxScoreSection" style="display: none;">
+                <h2>📊 Box Score</h2>
+                <div id="gameBoxScore">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </section>
+
+            <!-- Related Content Section -->
+            <section class="game-section">
+                <h2>📺 Related Content</h2>
+                <div id="gameContent">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/api-service.js"></script>
+    <script src="js/game.js"></script>
+</body>
+</html>
