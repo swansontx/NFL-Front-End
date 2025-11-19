@@ -1,7 +1,7 @@
 // Main app.js for home page functionality
 
 let currentDay = 0;
-let currentWeek = 11;
+let currentWeek = 12;
 let currentSeason = 2025;
 
 // Initialize the app when DOM is loaded
