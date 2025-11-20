@@ -316,6 +316,60 @@ class NFLAPIService {
     }
 
     /**
+     * Get best value props across games
+     * GET /api/v1/props/value
+     *
+     * @param {Object} options - Query parameters
+     * @param {number} options.week - Week number
+     * @param {number} options.limit - Max results (default 12)
+     * @param {number} options.min_edge - Minimum edge threshold
+     */
+    async getBestProps(options = {}) {
+        if (!this.useBackend) {
+            return {
+                week: options.week,
+                props: [],
+                total_count: 0
+            };
+        }
+
+        const params = new URLSearchParams();
+        if (options.week) params.append('week', options.week);
+        if (options.limit) params.append('limit', options.limit);
+        if (options.min_edge) params.append('min_edge', options.min_edge);
+
+        const query = params.toString() ? `?${params.toString()}` : '';
+        return await this._fetch(`/api/v1/props/value${query}`);
+    }
+
+    /**
+     * Get correlation-aware parlay suggestions
+     * GET /api/v1/betting/parlays/suggestions
+     *
+     * @param {Object} options - Query parameters
+     * @param {number} options.week - Week number
+     * @param {number} options.legs - Number of legs (2-6)
+     * @param {number} options.limit - Max parlays to return
+     */
+    async getParlaySuggestions(options = {}) {
+        if (!this.useBackend) {
+            return {
+                week: options.week,
+                parlays: [],
+                total_count: 0
+            };
+        }
+
+        const params = new URLSearchParams();
+        if (options.week) params.append('week', options.week);
+        if (options.legs) params.append('legs', options.legs);
+        if (options.limit) params.append('limit', options.limit);
+
+        const query = params.toString() ? `?${params.toString()}` : '';
+        return await this._fetch(`/api/v1/betting/parlays/suggestions${query}`);
+    }
+
+    /**
      * Get current odds from DraftKings
      * GET /api/v1/odds/current
      *

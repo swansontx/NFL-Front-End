@@ -105,13 +105,18 @@ async function loadGames(dayOffset) {
     `;
 
     try {
-        const response = await apiService.getGames({
-            season: currentSeason,
-            week: currentWeek,
-            upcoming: true
-        });
+        // Fetch games, standings, and odds in parallel
+        const [gamesResponse, standingsResponse, oddsResponse] = await Promise.all([
+            apiService.getGames({
+                season: currentSeason,
+                week: currentWeek,
+                upcoming: true
+            }),
+            apiService.getStandings({ season: currentSeason, week: currentWeek }),
+            apiService.getCurrentOdds({ week: currentWeek })
+        ]);
 
-        const games = response.games || [];
+        const games = gamesResponse.games || [];
 
         if (games.length === 0) {
             gamesGrid.innerHTML = `
@@ -123,11 +128,14 @@ async function loadGames(dayOffset) {
             return;
         }
 
-        // Fetch team stats for each unique team
-        const teamStats = await loadTeamStats(games);
+        // Build team records from standings
+        const teamRecords = buildTeamRecords(standingsResponse);
+
+        // Build odds lookup by game
+        const gameOdds = buildGameOdds(oddsResponse, games);
 
         // Render game cards
-        gamesGrid.innerHTML = games.map(game => createGameCard(game, teamStats)).join('');
+        gamesGrid.innerHTML = games.map(game => createGameCard(game, teamRecords, gameOdds)).join('');
 
         // Add click handlers
         document.querySelectorAll('.game-card').forEach(card => {
@@ -150,6 +158,45 @@ async function loadGames(dayOffset) {
             </div>
         `;
     }
+}
+
+// Build team records from standings data
+function buildTeamRecords(standings) {
+    const records = {};
+    if (!standings || !standings.divisions) return records;
+
+    standings.divisions.forEach(division => {
+        if (division.teams) {
+            division.teams.forEach(team => {
+                records[team.team_id] = {
+                    wins: team.wins || 0,
+                    losses: team.losses || 0,
+                    ties: team.ties || 0
+                };
+            });
+        }
+    });
+    return records;
+}
+
+// Build odds lookup by game
+function buildGameOdds(oddsResponse, games) {
+    const gameOdds = {};
+    if (!oddsResponse || !oddsResponse.odds) return gameOdds;
+
+    // Try to match odds to games
+    oddsResponse.odds.forEach(odds => {
+        const gameId = odds.game_id;
+        if (gameId) {
+            gameOdds[gameId] = {
+                spread: odds.spread || odds.home_spread,
+                total: odds.total || odds.over_under,
+                homeML: odds.home_ml || odds.home_moneyline,
+                awayML: odds.away_ml || odds.away_moneyline
+            };
+        }
+    });
+    return gameOdds;
 }
 
 // Load team stats for all teams in games
@@ -177,14 +224,19 @@ async function loadTeamStats(games) {
     return teamStats;
 }
 
-function createGameCard(game, teamStats) {
-    const homeStats = teamStats[game.home_team];
-    const awayStats = teamStats[game.away_team];
+function createGameCard(game, teamRecords, gameOdds) {
+    const homeRec = teamRecords[game.home_team];
+    const awayRec = teamRecords[game.away_team];
 
-    const homeRecord = homeStats ? `${homeStats.wins || 0}-${homeStats.losses || 0}` : '';
-    const awayRecord = awayStats ? `${awayStats.wins || 0}-${awayStats.losses || 0}` : '';
+    const homeRecord = homeRec ? `${homeRec.wins}-${homeRec.losses}${homeRec.ties ? `-${homeRec.ties}` : ''}` : '';
+    const awayRecord = awayRec ? `${awayRec.wins}-${awayRec.losses}${awayRec.ties ? `-${awayRec.ties}` : ''}` : '';
 
     const gameTime = formatTime(game.game_time || '13:00');
+
+    // Get odds for this game
+    const odds = gameOdds[game.game_id] || {};
+    const spread = odds.spread !== undefined ? (odds.spread > 0 ? `+${odds.spread}` : odds.spread) : '-';
+    const total = odds.total || '-';
 
     return `
         <div class="game-card" data-game-id="${game.game_id}">
@@ -202,6 +254,16 @@ function createGameCard(game, teamStats) {
                         <span class="team-name">${game.home_team}</span>
                     </a>
                     <span class="team-record">${homeRecord}</span>
+                </div>
+            </div>
+            <div class="game-lines">
+                <div class="game-line">
+                    <span class="line-label">Spread</span>
+                    <span class="line-value">${spread}</span>
+                </div>
+                <div class="game-line">
+                    <span class="line-label">O/U</span>
+                    <span class="line-value">${total}</span>
                 </div>
             </div>
             <div class="game-card-footer">

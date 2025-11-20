@@ -107,29 +107,31 @@ async function loadPropsForSelectedGames() {
     container.innerHTML = `<div class="loading-state"><div class="spinner"></div></div>`;
 
     try {
-        allProps = [];
+        // Use the value endpoint to get best props across week
+        const bestPropsResponse = await apiService.getBestProps({
+            week: currentWeek,
+            limit: 50
+        });
 
-        // Fetch projections for each selected game
-        const promises = Array.from(selectedGameIds).map(async (gameId) => {
-            try {
-                const projections = await apiService.getGameProjections(gameId, { limit: 20 });
-                if (projections && projections.projections) {
-                    projections.projections.forEach(prop => {
-                        prop.game_id = gameId;
-                        // Find game info
-                        const game = allGames.find(g => g.game_id === gameId);
-                        if (game) {
-                            prop.matchup = `${game.away_team} @ ${game.home_team}`;
-                        }
-                    });
-                    allProps.push(...projections.projections);
-                }
-            } catch (err) {
-                console.warn(`Could not load props for game ${gameId}:`, err);
+        let propsToFilter = bestPropsResponse.props || [];
+
+        // If we have props, filter to selected games
+        if (propsToFilter.length > 0 && selectedGameIds.size < allGames.length) {
+            propsToFilter = propsToFilter.filter(prop => {
+                // Check if prop's game is in selected games
+                return selectedGameIds.has(prop.game_id);
+            });
+        }
+
+        // Add matchup info
+        propsToFilter.forEach(prop => {
+            const game = allGames.find(g => g.game_id === prop.game_id);
+            if (game) {
+                prop.matchup = `${game.away_team} @ ${game.home_team}`;
             }
         });
 
-        await Promise.all(promises);
+        allProps = propsToFilter;
 
         if (allProps.length === 0) {
             container.innerHTML = `<p class="empty-message">No props available for selected games</p>`;
@@ -137,9 +139,9 @@ async function loadPropsForSelectedGames() {
             return;
         }
 
-        // Sort by confidence and take top 12
+        // Sort by edge/confidence and take top 12
         const topProps = allProps
-            .sort((a, b) => (b.confidence || 0) - (a.confidence || 0))
+            .sort((a, b) => (b.edge || b.confidence || 0) - (a.edge || a.confidence || 0))
             .slice(0, 12);
 
         if (countDisplay) countDisplay.textContent = `${topProps.length} props`;
@@ -148,6 +150,11 @@ async function loadPropsForSelectedGames() {
             const isInSlip = parlaySlip.some(p =>
                 p.player_id === prop.player_id && p.market === prop.market
             );
+
+            const line = prop.line || prop.mu;
+            const lineDisplay = line !== undefined ? (typeof line === 'number' ? line.toFixed(1) : line) : 'N/A';
+            const odds = prop.odds || prop.market_odds || -110;
+            const edgeDisplay = prop.edge ? `+${Math.round(prop.edge * 100)}%` : (prop.confidence ? `${Math.round(prop.confidence * 100)}%` : '');
 
             return `
                 <div class="prop-builder-card ${isInSlip ? 'in-slip' : ''}"
@@ -163,14 +170,14 @@ async function loadPropsForSelectedGames() {
                     </div>
                     <div class="prop-builder-details">
                         <div class="prop-builder-market">${formatMarketName(prop.market)}</div>
-                        <div class="prop-builder-line">${prop.mu ? prop.mu.toFixed(1) : 'N/A'}</div>
+                        <div class="prop-builder-line">${lineDisplay}</div>
                     </div>
                     <div class="prop-builder-odds">
-                        <span class="odds-value">-110</span>
+                        <span class="odds-value">${formatOdds(odds)}</span>
                     </div>
-                    ${prop.confidence ? `
-                        <div class="prop-builder-confidence confidence-${getConfidenceLevel(prop.confidence)}">
-                            ${Math.round(prop.confidence * 100)}%
+                    ${edgeDisplay ? `
+                        <div class="prop-builder-confidence confidence-${getConfidenceLevel(prop.edge || prop.confidence)}">
+                            ${edgeDisplay}
                         </div>
                     ` : ''}
                     <div class="prop-add-indicator">

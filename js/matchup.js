@@ -216,21 +216,27 @@ async function loadTopProps() {
     container.innerHTML = `<div class="loading-state"><div class="spinner"></div></div>`;
 
     try {
-        const projections = await apiService.getGameProjections(currentGameId, { limit: 50 });
+        // Use prop-sheet endpoint for comprehensive prop data
+        const propSheet = await apiService.getGamePropSheet(currentGameId);
 
-        if (!projections || !projections.projections || projections.projections.length === 0) {
+        if (!propSheet || !propSheet.props || propSheet.props.length === 0) {
             container.innerHTML = `<p class="empty-message">No props available for this game</p>`;
             return;
         }
 
-        // Sort by confidence and take top 12
-        const topProps = projections.projections
-            .sort((a, b) => (b.confidence || 0) - (a.confidence || 0))
+        // Sort by confidence/value and take top 12
+        const topProps = propSheet.props
+            .sort((a, b) => (b.confidence || b.edge || 0) - (a.confidence || a.edge || 0))
             .slice(0, 12);
 
         container.innerHTML = `
             <div class="top-props-grid">
-                ${topProps.map((prop, index) => `
+                ${topProps.map((prop, index) => {
+                    const line = prop.line || prop.mu;
+                    const lineDisplay = line !== undefined ? (typeof line === 'number' ? line.toFixed(1) : line) : 'N/A';
+                    const odds = prop.over_odds || prop.odds || -110;
+
+                    return `
                     <div class="prop-card-compact">
                         <div class="prop-rank">#${index + 1}</div>
                         <div class="prop-info">
@@ -241,15 +247,17 @@ async function loadTopProps() {
                         </div>
                         <div class="prop-details">
                             <span class="prop-market">${formatMarketName(prop.market)}</span>
-                            <span class="prop-line">${prop.mu ? prop.mu.toFixed(1) : 'N/A'}</span>
+                            <span class="prop-line">${lineDisplay}</span>
                         </div>
-                        ${prop.confidence ? `
-                            <div class="prop-confidence confidence-${getConfidenceLevel(prop.confidence)}">
-                                ${Math.round(prop.confidence * 100)}%
+                        <div class="prop-odds">${formatOdds(odds)}</div>
+                        ${prop.confidence || prop.edge ? `
+                            <div class="prop-confidence confidence-${getConfidenceLevel(prop.confidence || prop.edge)}">
+                                ${prop.confidence ? Math.round(prop.confidence * 100) + '%' : '+' + Math.round((prop.edge || 0) * 100) + '%'}
                             </div>
                         ` : ''}
                     </div>
-                `).join('')}
+                `;
+                }).join('')}
             </div>
         `;
 
