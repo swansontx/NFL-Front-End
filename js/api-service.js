@@ -121,13 +121,11 @@ class NFLAPIService {
 
     /**
      * Get today's games
-     * GET /api/v1/games/today
+     * Uses /api/v1/games/ with date filter (no dedicated /today endpoint in backend)
      */
     async getTodaysGames() {
-        if (!this.useBackend) {
-            return this.getGames({ date: getCurrentDate() });
-        }
-        return await this._fetch('/api/v1/games/today');
+        // Use the general games endpoint with today's date filter
+        return this.getGames({ date: getCurrentDate() });
     }
 
     /**
@@ -1015,6 +1013,96 @@ class NFLAPIService {
         };
         return map[rating] || 'mid';
     }
+
+    // ==================== FIELD NORMALIZATION ====================
+
+    /**
+     * Normalize game data from backend to frontend format
+     * This handles any field name differences between backend and frontend
+     */
+    normalizeGame(backendGame) {
+        if (!backendGame) return null;
+
+        return {
+            id: backendGame.game_id || backendGame.id,
+            gameId: backendGame.game_id || backendGame.id,
+            homeTeam: backendGame.home_team || backendGame.homeTeam,
+            awayTeam: backendGame.away_team || backendGame.awayTeam,
+            homeScore: backendGame.home_score ?? backendGame.homeScore,
+            awayScore: backendGame.away_score ?? backendGame.awayScore,
+            gameDate: backendGame.game_date || backendGame.gameDate,
+            gameTime: backendGame.game_time || backendGame.gameTime || '13:00',
+            week: backendGame.week,
+            season: backendGame.season,
+            gameType: backendGame.game_type || backendGame.gameType || 'REG',
+            stadium: backendGame.stadium,
+            completed: backendGame.completed || (backendGame.home_score !== null && backendGame.away_score !== null),
+            // Keep original backend fields for compatibility
+            ...backendGame
+        };
+    }
+
+    /**
+     * Normalize team data from backend to frontend format
+     */
+    normalizeTeam(backendTeam) {
+        if (!backendTeam) return null;
+
+        return {
+            id: backendTeam.team_id || backendTeam.id,
+            teamId: backendTeam.team_id || backendTeam.id,
+            teamName: backendTeam.team_name || backendTeam.teamName,
+            conference: backendTeam.conference,
+            division: backendTeam.division,
+            wins: backendTeam.wins || 0,
+            losses: backendTeam.losses || 0,
+            ties: backendTeam.ties || 0,
+            // Keep original backend fields for compatibility
+            ...backendTeam
+        };
+    }
+
+    /**
+     * Normalize player data from backend to frontend format
+     */
+    normalizePlayer(backendPlayer) {
+        if (!backendPlayer) return null;
+
+        return {
+            id: backendPlayer.player_id || backendPlayer.id,
+            playerId: backendPlayer.player_id || backendPlayer.id,
+            playerName: backendPlayer.player_name || backendPlayer.playerName,
+            team: backendPlayer.team,
+            position: backendPlayer.position,
+            jerseyNumber: backendPlayer.jersey_number || backendPlayer.jerseyNumber,
+            // Keep original backend fields for compatibility
+            ...backendPlayer
+        };
+    }
+
+    /**
+     * Normalize an array of games
+     */
+    normalizeGames(games) {
+        if (!Array.isArray(games)) return [];
+        return games.map(game => this.normalizeGame(game));
+    }
+
+    /**
+     * Normalize an array of teams
+     */
+    normalizeTeams(teams) {
+        if (!Array.isArray(teams)) return [];
+        return teams.map(team => this.normalizeTeam(team));
+    }
+
+    /**
+     * Normalize an array of players
+     */
+    normalizePlayers(players) {
+        if (!Array.isArray(players)) return [];
+        return players.map(player => this.normalizePlayer(player));
+    }
 }
 
 // Helper function to get current date in YYYY-MM-DD format
@@ -1051,8 +1139,65 @@ function getGamesByFilters(filters) {
 // Create singleton instance
 const apiService = new NFLAPIService(API_CONFIG);
 
+// ==================== GLOBAL UTILITY FUNCTIONS ====================
+
+/**
+ * Format American odds for display
+ * @param {number} odds - American odds value
+ * @returns {string} Formatted odds string with + prefix for positive
+ */
+function formatOdds(odds) {
+    if (odds === null || odds === undefined) return '-';
+    return odds > 0 ? `+${odds}` : `${odds}`;
+}
+
+/**
+ * Get CSS class for rating badge
+ * @param {string} rating - Rating value (excellent, good, moderate, poor)
+ * @returns {string} CSS class name
+ */
+function getRatingClass(rating) {
+    if (!rating) return 'rating-unknown';
+    const ratingLower = rating.toLowerCase();
+    if (ratingLower === 'excellent') return 'rating-excellent';
+    if (ratingLower === 'good') return 'rating-good';
+    if (ratingLower === 'moderate') return 'rating-moderate';
+    return 'rating-poor';
+}
+
+/**
+ * Calculate implied probability from American odds
+ * @param {number} odds - American odds value
+ * @returns {number} Implied probability (0-1)
+ */
+function oddsToImpliedProbability(odds) {
+    if (odds === null || odds === undefined) return 0.5;
+    if (odds > 0) {
+        return 100 / (odds + 100);
+    } else {
+        return Math.abs(odds) / (Math.abs(odds) + 100);
+    }
+}
+
+/**
+ * Convert implied probability to American odds
+ * @param {number} probability - Probability (0-1)
+ * @returns {number} American odds
+ */
+function probabilityToOdds(probability) {
+    if (probability >= 0.5) {
+        return Math.round(-100 * probability / (1 - probability));
+    } else {
+        return Math.round(100 * (1 - probability) / probability);
+    }
+}
+
 // Export for use in other files
 if (typeof window !== 'undefined') {
     window.apiService = apiService;
     window.API_CONFIG = API_CONFIG;
+    window.formatOdds = formatOdds;
+    window.getRatingClass = getRatingClass;
+    window.oddsToImpliedProbability = oddsToImpliedProbability;
+    window.probabilityToOdds = probabilityToOdds;
 }
