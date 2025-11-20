@@ -10,6 +10,7 @@ let parlaySlip = [];
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
     await loadGames();
+    await loadTrendingProps();
     setupEventListeners();
 });
 
@@ -193,6 +194,59 @@ async function loadPropsForSelectedGames() {
     } catch (error) {
         console.error('Error loading props:', error);
         container.innerHTML = `<p class="error-message">Unable to load props</p>`;
+    }
+}
+
+// Load trending props with line movement
+async function loadTrendingProps() {
+    const container = document.getElementById('trendingPropsList');
+    if (!container) return;
+
+    container.innerHTML = `<div class="loading-state"><div class="spinner"></div></div>`;
+
+    try {
+        const response = await apiService.getPropsTrending({
+            week: currentWeek,
+            limit: 8
+        });
+
+        const trendingProps = response.trending_props || [];
+
+        if (trendingProps.length === 0) {
+            container.innerHTML = `<p class="empty-message">No trending props this week</p>`;
+            return;
+        }
+
+        container.innerHTML = trendingProps.map(prop => {
+            const movement = prop.line_movement || prop.movement || 0;
+            const movementClass = movement > 0 ? 'movement-up' : (movement < 0 ? 'movement-down' : '');
+            const movementDisplay = movement > 0 ? `+${movement.toFixed(1)}` : movement.toFixed(1);
+            const line = prop.current_line || prop.line || prop.mu;
+            const lineDisplay = line !== undefined ? (typeof line === 'number' ? line.toFixed(1) : line) : 'N/A';
+
+            return `
+                <div class="trending-prop-card ${movementClass}">
+                    <div class="trending-prop-info">
+                        <div class="trending-player">${prop.player_name}</div>
+                        <div class="trending-meta">
+                            <span>${prop.team} • ${prop.position}</span>
+                        </div>
+                    </div>
+                    <div class="trending-details">
+                        <div class="trending-market">${formatMarketName(prop.market)}</div>
+                        <div class="trending-line">${lineDisplay}</div>
+                    </div>
+                    <div class="trending-movement">
+                        <span class="movement-arrow">${movement > 0 ? '↑' : (movement < 0 ? '↓' : '→')}</span>
+                        <span class="movement-value">${movementDisplay}</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+    } catch (error) {
+        console.error('Error loading trending props:', error);
+        container.innerHTML = `<p class="empty-message">Unable to load trending props</p>`;
     }
 }
 

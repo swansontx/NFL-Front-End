@@ -45,6 +45,7 @@ async function loadMatchupData() {
         loadGameHeader(),
         loadWeather(),
         loadInjuries(),
+        loadInsights(),
         loadTopProps()
     ]);
 }
@@ -206,6 +207,84 @@ async function loadInjuries() {
         console.error('Error loading injuries:', error);
         container.innerHTML = `<p class="empty-message">Injuries unavailable</p>`;
     }
+}
+
+// Load game insights
+async function loadInsights() {
+    const container = document.getElementById('gameInsights');
+    if (!container) return;
+
+    container.innerHTML = `<div class="loading-state"><div class="spinner"></div></div>`;
+
+    try {
+        const insights = await apiService.getGameInsights(currentGameId);
+
+        if (!insights || insights.length === 0) {
+            container.innerHTML = `<p class="empty-message">No insights available for this game</p>`;
+            return;
+        }
+
+        container.innerHTML = `
+            <div class="insights-grid">
+                ${insights.slice(0, 6).map(insight => {
+                    const typeClass = getInsightTypeClass(insight.type || insight.category);
+                    const icon = getInsightIcon(insight.type || insight.category);
+
+                    return `
+                        <div class="insight-card ${typeClass}">
+                            <div class="insight-header">
+                                <span class="insight-icon">${icon}</span>
+                                <span class="insight-type">${formatInsightType(insight.type || insight.category)}</span>
+                            </div>
+                            <div class="insight-content">
+                                ${insight.text || insight.description || insight.title}
+                            </div>
+                            ${insight.impact ? `
+                                <div class="insight-impact impact-${insight.impact.toLowerCase()}">
+                                    ${insight.impact} Impact
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+
+    } catch (error) {
+        console.error('Error loading insights:', error);
+        container.innerHTML = `<p class="empty-message">Insights unavailable</p>`;
+    }
+}
+
+// Helper functions for insights
+function getInsightTypeClass(type) {
+    if (!type) return '';
+    const t = type.toLowerCase();
+    if (t.includes('matchup') || t.includes('defense')) return 'insight-matchup';
+    if (t.includes('trend') || t.includes('streak')) return 'insight-trend';
+    if (t.includes('weather')) return 'insight-weather';
+    if (t.includes('injury') || t.includes('roster')) return 'insight-injury';
+    if (t.includes('betting') || t.includes('line')) return 'insight-betting';
+    return 'insight-general';
+}
+
+function getInsightIcon(type) {
+    if (!type) return '📊';
+    const t = type.toLowerCase();
+    if (t.includes('matchup') || t.includes('defense')) return '⚔️';
+    if (t.includes('trend') || t.includes('streak')) return '📈';
+    if (t.includes('weather')) return '🌤️';
+    if (t.includes('injury') || t.includes('roster')) return '🏥';
+    if (t.includes('betting') || t.includes('line')) return '💰';
+    if (t.includes('correlation')) return '🔗';
+    return '📊';
+}
+
+function formatInsightType(type) {
+    if (!type) return 'General';
+    return type
+        .replace(/_/g, ' ')
+        .replace(/\b\w/g, l => l.toUpperCase());
 }
 
 // Load top 12 props
