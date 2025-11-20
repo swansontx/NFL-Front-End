@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Props Builder - NFL Betting Hub</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <h1 class="logo">🏈 NFL Betting Hub</h1>
+            <ul class="nav-links">
+                <li><a href="index.html">Schedule</a></li>
+                <li><a href="props.html" class="active">Props Builder</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container props-builder-container">
+        <div class="props-builder-layout">
+            <!-- Left Panel: Game Selection & Props -->
+            <div class="props-main-panel">
+                <!-- Game Selection -->
+                <section class="props-section">
+                    <div class="section-header">
+                        <h2>Select Games</h2>
+                        <div class="game-select-controls">
+                            <button id="selectAllGames" class="btn-secondary">Select All</button>
+                            <button id="clearAllGames" class="btn-secondary">Clear</button>
+                        </div>
+                    </div>
+                    <div class="games-selection-grid" id="gamesSelection">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </section>
+
+                <!-- Top Props -->
+                <section class="props-section">
+                    <div class="section-header">
+                        <h2>Best Props</h2>
+                        <span class="props-count" id="propsCount">0 props</span>
+                    </div>
+                    <p class="section-subtitle">Top 12 props across selected games. Click to add to parlay.</p>
+                    <div class="props-list" id="propsList">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </section>
+            </div>
+
+            <!-- Right Panel: Parlay Slip -->
+            <aside class="parlay-slip-panel">
+                <div class="parlay-slip">
+                    <div class="parlay-slip-header">
+                        <h3>Parlay Slip</h3>
+                        <button id="clearSlip" class="btn-clear">Clear</button>
+                    </div>
+
+                    <div class="parlay-legs" id="parlayLegs">
+                        <p class="empty-slip">Click props to add to parlay</p>
+                    </div>
+
+                    <div class="parlay-summary" id="parlaySummary" style="display: none;">
+                        <div class="summary-row">
+                            <span>Legs:</span>
+                            <span id="legCount">0</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>Combined Odds:</span>
+                            <span id="combinedOdds">-</span>
+                        </div>
+                        <div class="summary-row payout-row">
+                            <span>$10 Payout:</span>
+                            <span id="estimatedPayout">$0</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/api-service.js"></script>
+    <script src="js/props-builder.js"></script>
+</body>
+</html>

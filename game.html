@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Details - NFL Betting Hub</title>
+    <title>Game Matchup - NFL Betting Hub</title>
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -12,16 +12,13 @@
             <h1 class="logo">🏈 NFL Betting Hub</h1>
             <ul class="nav-links">
                 <li><a href="index.html">Schedule</a></li>
-                <li><a href="teams.html">Teams</a></li>
-                <li><a href="#best-bets">Best Bets</a></li>
-                <li><a href="#best-props">Best Props</a></li>
-                <li><a href="parlay-generator.html">Parlays</a></li>
+                <li><a href="props.html">Props Builder</a></li>
             </ul>
         </div>
     </nav>
 
     <div class="container game-page-container">
-        <a href="javascript:history.back()" class="back-link">← Back</a>
+        <a href="index.html" class="back-link">← Back to Schedule</a>
 
         <!-- Game Header -->
         <div class="game-page-header" id="gameHeader">
@@ -30,66 +27,30 @@
 
         <!-- Main Content -->
         <div class="game-content">
-            <!-- Prop Sheet Section -->
-            <section class="game-section">
-                <h2>💰 Betting Props</h2>
-                <div id="gamePropSheet">
-                    <!-- Populated by JavaScript -->
-                </div>
-            </section>
+            <!-- Weather & Injuries Row -->
+            <div class="game-info-row">
+                <!-- Weather Section -->
+                <section class="game-section game-section-half">
+                    <h2>Weather</h2>
+                    <div id="gameWeather">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </section>
 
-            <!-- Projections Section -->
-            <section class="game-section">
-                <h2>📊 Player Projections</h2>
-                <div id="gameProjections">
-                    <!-- Populated by JavaScript -->
-                </div>
-            </section>
+                <!-- Injuries Section -->
+                <section class="game-section game-section-half">
+                    <h2>Injuries</h2>
+                    <div id="gameInjuries">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </section>
+            </div>
 
-            <!-- Weather Section -->
+            <!-- Top Props Section -->
             <section class="game-section">
-                <h2>🌤️ Weather Conditions</h2>
-                <div id="gameWeather">
-                    <!-- Populated by JavaScript -->
-                </div>
-            </section>
-
-            <!-- Injuries Section -->
-            <section class="game-section">
-                <h2>🏥 Injury Report</h2>
-                <div id="gameInjuries">
-                    <!-- Populated by JavaScript -->
-                </div>
-            </section>
-
-            <!-- Insights Section -->
-            <section class="game-section">
-                <h2>🧠 Matchup Insights</h2>
-                <div id="gameInsights">
-                    <!-- Populated by JavaScript -->
-                </div>
-            </section>
-
-            <!-- Narrative Section -->
-            <section class="game-section">
-                <h2>📖 Game Narrative</h2>
-                <div id="gameNarrative">
-                    <!-- Populated by JavaScript -->
-                </div>
-            </section>
-
-            <!-- Box Score Section (for completed games) -->
-            <section class="game-section" id="boxScoreSection" style="display: none;">
-                <h2>📊 Box Score</h2>
-                <div id="gameBoxScore">
-                    <!-- Populated by JavaScript -->
-                </div>
-            </section>
-
-            <!-- Related Content Section -->
-            <section class="game-section">
-                <h2>📺 Related Content</h2>
-                <div id="gameContent">
+                <h2>Top 12 Props</h2>
+                <p class="section-subtitle">Best value props for this matchup</p>
+                <div id="gameTopProps">
                     <!-- Populated by JavaScript -->
                 </div>
             </section>
@@ -98,6 +59,6 @@
 
     <script src="js/data.js"></script>
     <script src="js/api-service.js"></script>
-    <script src="js/game.js"></script>
+    <script src="js/matchup.js"></script>
 </body>
 </html>

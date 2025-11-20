@@ -12,136 +12,20 @@
             <h1 class="logo">🏈 NFL Betting Hub</h1>
             <ul class="nav-links">
                 <li><a href="index.html" class="active">Schedule</a></li>
-                <li><a href="teams.html">Teams</a></li>
-                <li><a href="standings.html">Standings</a></li>
-                <li><a href="props-tools.html">Props Tools</a></li>
-                <li><a href="parlay-generator.html">Parlays</a></li>
+                <li><a href="props.html">Props Builder</a></li>
             </ul>
         </div>
     </nav>
 
-    <div class="container">
-        <!-- Sidebar -->
-        <aside class="news-sidebar">
-            <!-- Latest Updates -->
-            <div class="sidebar-section">
-                <h2>Latest Updates</h2>
-                <div class="news-feed" id="newsFeed">
-                    <div class="news-item">
-                        <span class="news-tag injury">Injury</span>
-                        <p><strong>Patrick Mahomes</strong> - Questionable (ankle)</p>
-                        <span class="news-time">2 hours ago</span>
-                    </div>
-                    <div class="news-item">
-                        <span class="news-tag weather">Weather</span>
-                        <p><strong>GB vs CHI</strong> - Heavy winds expected (20+ mph)</p>
-                        <span class="news-time">4 hours ago</span>
-                    </div>
-                    <div class="news-item">
-                        <span class="news-tag injury">Injury</span>
-                        <p><strong>Justin Jefferson</strong> - Out (hamstring)</p>
-                        <span class="news-time">5 hours ago</span>
-                    </div>
-                    <div class="news-item">
-                        <span class="news-tag lineup">Lineup</span>
-                        <p><strong>Miami</strong> - Tua confirmed starter</p>
-                        <span class="news-time">6 hours ago</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Trends -->
-            <div class="sidebar-section trends-section">
-                <h2>Betting Trends</h2>
-                <div class="trends-list">
-                    <div class="trend-item">
-                        <div class="trend-stat">67%</div>
-                        <div class="trend-desc">Public on Chiefs ML</div>
-                    </div>
-                    <div class="trend-item">
-                        <div class="trend-stat">8-2</div>
-                        <div class="trend-desc">Eagles ATS in last 10</div>
-                    </div>
-                    <div class="trend-item">
-                        <div class="trend-stat">73%</div>
-                        <div class="trend-desc">Overs hitting in primetime</div>
-                    </div>
-                    <div class="trend-item">
-                        <div class="trend-stat">5-0</div>
-                        <div class="trend-desc">Ravens as home favorites</div>
-                    </div>
-                </div>
-            </div>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Best Bets Section -->
-            <section id="best-bets" class="feature-section">
-                <div class="section-header-main">
-                    <h2>Best Bets</h2>
-                    <span class="section-subtitle">Top-rated picks based on our analysis</span>
-                </div>
-                <div class="best-bets-grid" id="bestBetsGrid">
-                    <!-- Will be populated by JavaScript -->
-                </div>
-            </section>
-
-            <!-- Best Props Section -->
-            <section id="best-props" class="feature-section">
-                <div class="section-header-main">
-                    <h2>Best Props</h2>
-                    <span class="section-subtitle">Highest value player props</span>
-                </div>
-                <div class="best-props-list" id="bestPropsList">
-                    <!-- Will be populated by JavaScript -->
-                </div>
-            </section>
-
-            <!-- Trending Props Section -->
-            <section id="trending-props" class="feature-section">
-                <div class="section-header-main">
-                    <h2>📈 Trending Props</h2>
-                    <span class="section-subtitle">Props with significant line movement</span>
-                </div>
-                <div class="trending-props-container" id="trendingPropsContainer">
-                    <!-- Will be populated by JavaScript -->
-                </div>
-            </section>
-
-            <!-- Player Projections Section -->
-            <section id="projections" class="feature-section">
-                <div class="section-header-main">
-                    <h2>Player Projections</h2>
-                    <span class="section-subtitle">Statistical projections for today's games</span>
-                </div>
-                <div class="projections-table-container">
-                    <table class="projections-table" id="projectionsTable">
-                        <thead>
-                            <tr>
-                                <th>Player</th>
-                                <th>Team</th>
-                                <th>Pass Yds</th>
-                                <th>Pass TD</th>
-                                <th>Rush Yds</th>
-                                <th>Rec Yds</th>
-                                <th>Fantasy Pts</th>
-                            </tr>
-                        </thead>
-                        <tbody id="projectionsBody">
-                            <!-- Will be populated by JavaScript -->
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
+    <div class="container schedule-container">
+        <main class="main-content full-width">
             <!-- Schedule Section -->
             <section id="schedule" class="feature-section">
                 <div class="header-section">
-                    <h2>Schedule</h2>
+                    <h2>NFL Schedule</h2>
                     <div class="week-selector">
                         <button class="week-nav" id="prevWeek">‹</button>
-                        <span id="weekDisplay">Week 11 - Nov 18-24, 2025</span>
+                        <span id="weekDisplay">Week 12</span>
                         <button class="week-nav" id="nextWeek">›</button>
                     </div>
                 </div>
@@ -167,6 +51,6 @@
 
     <script src="js/data.js"></script>
     <script src="js/api-service.js"></script>
-    <script src="js/app.js"></script>
+    <script src="js/schedule.js"></script>
 </body>
 </html>
